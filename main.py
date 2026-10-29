@@ -239,21 +239,34 @@ async def batch_scan(payload: BatchRequest):
                         "st": "<<< PROCESSING URL >>>",
                     })
 
-                    sem = asyncio.Semaphore(ep_concurrency)
+                    slot_queue = asyncio.Queue()
+                    for s in range(ep_concurrency):
+                        slot_queue.put_nowait(s)
 
                     async def scan_single_ep(ep: Dict[str, Any]):
-                        async with sem:
+                        slot_id = await slot_queue.get()
+                        try:
                             if JOBS[jid].get("cancel"):
                                 return
 
                             ep_path = ep["endpoint"]
                             score = ep.get("score", 0)
 
+                            push("ep_branch", {
+                                "bot_id": wid,
+                                "slot_id": slot_id,
+                                "url": u,
+                                "ep": ep_path,
+                                "st": "PROCESSING",
+                                "total_slots": ep_concurrency,
+                            })
+
                             push("bot", {
                                 "id": wid,
                                 "url": u,
                                 "ep": ep_path,
-                                "st": f"<<< REQ ({ep_concurrency} ep/url) >>>",
+                                "st": f"<<< REQ ({ep_concurrency} flux) >>>",
+                                "total_slots": ep_concurrency,
                             })
 
                             try:
@@ -275,6 +288,8 @@ async def batch_scan(payload: BatchRequest):
                                     "content_length": 0,
                                     "response_time_ms": 0,
                                     "sensitive_data": [],
+                                    "sensitive_matches": [],
+                                    "snippet": "",
                                 }
 
                             g["done"] += 1
@@ -285,8 +300,10 @@ async def batch_scan(payload: BatchRequest):
 
                             if not status_code:
                                 g["errors"] += 1
+                                st_branch = "ERROR"
                             else:
                                 alive_targets.add(u)
+                                st_branch = f"STATUS: [{status_code}]"
 
                             if r.get("accessible"):
                                 g["hits"] += 1
@@ -321,35 +338,72 @@ async def batch_scan(payload: BatchRequest):
                                     "url": u,
                                     "ep": ep_path,
                                     "st": f"<<< SUCCESS: [{status_code}] HIT ({sev.upper()}) >>>",
+                                    "total_slots": ep_concurrency,
                                 })
                                 push("log", {
                                     "cls": "hit",
                                     "msg": f"[HIT] Bot URL {wid+1} : {u}{ep_path} \u2192 {status_code} [{sev.upper()}] ({r.get('content_length')}b)"
                                 })
+                                st_branch = f"HIT: [{status_code}] {sev.upper()}"
                             else:
                                 if status_code == 404:
                                     g["bad"] += 1
+                                    st_branch = "404 MISS"
                                 push("bot", {
                                     "id": wid,
                                     "url": u,
                                     "ep": ep_path,
-                                    "st": f"<<< FAIL: [{status_code or 'ERR'}] MISS >>>",
+                                    "st": f"<<< REQ ({ep_concurrency} flux) >>>",
+                                    "total_slots": ep_concurrency,
                                 })
+
+                            push("ep_branch", {
+                                "bot_id": wid,
+                                "slot_id": slot_id,
+                                "url": u,
+                                "ep": ep_path,
+                                "st": st_branch,
+                                "status_code": status_code,
+                                "total_slots": ep_concurrency,
+                            })
 
                             now_tick = time.time()
                             if now_tick - last_stats_emit > 0.08:
                                 emit_stats_now()
 
+                        finally:
+                            slot_queue.put_nowait(slot_id)
+
                     await asyncio.gather(*(scan_single_ep(ep) for ep in all_endpoints))
                     url_queue.task_done()
                     g["active_bots"] = max(0, g["active_bots"] - 1)
+
+                    for s in range(ep_concurrency):
+                        push("ep_branch", {
+                            "bot_id": wid,
+                            "slot_id": s,
+                            "url": u,
+                            "ep": "—",
+                            "st": "IDLE",
+                            "total_slots": ep_concurrency,
+                        })
 
             push("bot", {
                 "id": wid,
                 "url": "—",
                 "ep": "—",
                 "st": "<<< IDLE >>>",
+                "total_slots": ep_concurrency,
             })
+            for s in range(ep_concurrency):
+                push("ep_branch", {
+                    "bot_id": wid,
+                    "slot_id": s,
+                    "url": "—",
+                    "ep": "—",
+                    "st": "IDLE",
+                    "total_slots": ep_concurrency,
+                })
 
         workers = [asyncio.create_task(url_worker(i)) for i in range(url_concurrency)]
         await asyncio.gather(*workers)
