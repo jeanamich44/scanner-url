@@ -315,6 +315,16 @@ body{
     </div>
 
     <div class="ctrl-radios">
+      <span>Profil:</span>
+      <select id="selQuickBrowser" onchange="if(document.getElementById('selBrowserProfile'))document.getElementById('selBrowserProfile').value=this.value" style="background:#0d0d10;border:1px solid var(--brd);color:var(--cyan);font-size:10px;padding:2px 4px;border-radius:2px;outline:none">
+        <option value="chrome" selected>Chrome 146</option>
+        <option value="firefox">Firefox 147</option>
+        <option value="safari">Safari 18.0</option>
+        <option value="random">Rotation</option>
+      </select>
+    </div>
+
+    <div class="ctrl-radios">
       <span>Prox:</span>
       <label><input type="radio" name="radProx" value="DEF"> DEF</label>
       <label><input type="radio" name="radProx" value="ON" checked> ON</label>
@@ -460,10 +470,17 @@ body{
         </div>
       </div>
       <div>
-        <label style="color:var(--tx-dim);display:block;margin-bottom:4px">Impersonate Profile</label>
-        <div style="background:#0d0d10;border:1px solid var(--brd);padding:8px;border-radius:2px;color:var(--cyan);font-family:monospace">
-          chrome146 (Dernière empreinte TLS, JA4, HTTP/2 multiplexing)
-        </div>
+        <label style="color:var(--tx-dim);display:block;margin-bottom:4px">Profil Navigateur (TLS & Headers Stricts)</label>
+        <select id="selBrowserProfile" onchange="document.getElementById('selQuickBrowser').value=this.value" style="width:100%;background:#0d0d10;color:var(--cyan);border:1px solid var(--brd);padding:6px;border-radius:2px;font-family:monospace;font-size:11px">
+          <option value="chrome" selected>Chrome (chrome146 - TLS JA4 & Client Hints stricts)</option>
+          <option value="firefox">Firefox (firefox147 - TLS & HTTP/2 Priority sans Client Hints)</option>
+          <option value="safari">Safari (safari18_0 - WebKit TLS & Headers Mac OS)</option>
+          <option value="random">Rotation dynamique par bot (Profils non mélangés)</option>
+        </select>
+      </div>
+      <div>
+        <label style="color:var(--tx-dim);display:block;margin-bottom:4px">Pool de Proxys (un par ligne - HTTP/HTTPS/SOCKS4/SOCKS5)</label>
+        <textarea id="taProxies" placeholder="192.168.1.1:8080&#10;192.168.1.2:8080:user:pass&#10;socks5://user:pass@192.168.1.3:1080" style="width:100%;height:75px;background:#0d0d10;border:1px solid var(--brd);border-radius:3px;color:#fff;padding:6px;font-family:Consolas,monospace;font-size:10px;outline:none;resize:vertical"></textarea>
       </div>
       <div>
         <label style="color:var(--tx-dim);display:block;margin-bottom:4px">Bypass Anti-Scrap / WAF</label>
@@ -712,9 +729,14 @@ async function startScan() {
 
   const proxRad = document.querySelector('input[name="radProx"]:checked');
   const useBypass = proxRad ? (proxRad.value !== 'OFF') : true;
+  const useProxy = proxRad ? (proxRad.value === 'ON') : false;
 
   const mutRad = document.querySelector('input[name="radMut"]:checked');
   const useMut = mutRad ? (mutRad.value === 'ON') : true;
+
+  const browserVal = document.getElementById('selQuickBrowser') ? document.getElementById('selQuickBrowser').value : 'chrome';
+  const rawProxiesText = document.getElementById('taProxies') ? document.getElementById('taProxies').value.trim() : '';
+  const proxiesList = rawProxiesText ? rawProxiesText.split('\n').map(p => p.trim()).filter(p => p && !p.startsWith('#')) : [];
 
   reinitBots(botsVal);
 
@@ -732,7 +754,7 @@ async function startScan() {
   document.getElementById('cntHitsBadge').textContent = '0';
   document.getElementById('dbHitsCount').textContent = '0';
 
-  addLog('sys', `Lancement du scan : ${storedUrls.length} URLs, ${topEpVal} endpoints par URL, ${botsVal} bots.`);
+  addLog('sys', `Lancement du scan : ${storedUrls.length} URLs, ${topEpVal} endpoints par URL, ${botsVal} bots. Profil: ${browserVal.toUpperCase()}`);
 
   try {
     const payload = {
@@ -742,6 +764,9 @@ async function startScan() {
       bots: botsVal,
       use_bypass: useBypass,
       use_mutations: useMut,
+      browser: browserVal,
+      proxies: proxiesList,
+      use_proxy: useProxy,
     };
 
     const res = await fetch('/batch', {

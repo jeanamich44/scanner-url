@@ -5,21 +5,15 @@ import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 from curl_cffi.requests import AsyncSession
+from src.core.browser_profiles import get_browser_profile
 
 # --------------------------------------------------
 
-ENDPOINTS_PATH = Path(__file__).resolve().parents[3] / "endpoints.json"
+ENDPOINTS_PATH = Path(__file__).resolve().parents[2] / "endpoints.json"
+if not ENDPOINTS_PATH.exists():
+    ENDPOINTS_PATH = Path(__file__).resolve().parents[3] / "endpoints.json"
 if not ENDPOINTS_PATH.exists():
     ENDPOINTS_PATH = Path(r"C:\Users\cuba\Desktop\Pas Touche\Programmation\Creation\endpoints.json")
-
-# --------------------------------------------------
-
-USER_AGENTS = [
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:138.0) Gecko/20100101 Firefox/138.0",
-]
 
 # --------------------------------------------------
 
@@ -130,6 +124,7 @@ async def probe_fast(
     timeout: float,
     use_bypass: bool,
     use_mutations: bool,
+    headers: Optional[Dict[str, str]] = None,
 ) -> Dict[str, Any]:
     result: Dict[str, Any] = {
         "endpoint": endpoint,
@@ -144,21 +139,10 @@ async def probe_fast(
     }
 
     url = base_url.rstrip("/") + endpoint
-    hdrs = {
-        "User-Agent": random.choice(USER_AGENTS),
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.9,fr;q=0.8",
-        "Accept-Encoding": "gzip, deflate, br",
-        "Connection": "keep-alive",
-        "Sec-Ch-Ua": '"Chromium";v="146", "Not A(Brand";v="24", "Google Chrome";v="146"',
-        "Sec-Ch-Ua-Mobile": "?0",
-        "Sec-Ch-Ua-Platform": '"Windows"',
-        "Sec-Fetch-Dest": "document",
-        "Sec-Fetch-Mode": "navigate",
-        "Sec-Fetch-Site": "none",
-        "Sec-Fetch-User": "?1",
-        "Upgrade-Insecure-Requests": "1",
-    }
+    if headers:
+        hdrs = dict(headers)
+    else:
+        _, hdrs = get_browser_profile("chrome")
 
     try:
         t0 = time.time()

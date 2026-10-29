@@ -1,17 +1,21 @@
 import re
 import time
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 from urllib.parse import urljoin, urlparse
 from bs4 import BeautifulSoup
 from curl_cffi import requests
 from src.analyzers import inspect_dns, inspect_ssl, analyze_security, detect_technologies
+from src.core.browser_profiles import get_browser_profile
+from src.core.proxy_manager import format_proxy_line
 
 # --------------------------------------------------
 
 class UrlScanner:
-    def __init__(self, timeout: float = 12.0, max_redirects: int = 10):
+    def __init__(self, timeout: float = 12.0, max_redirects: int = 10, browser: str = "chrome", proxy: Optional[str] = None):
         self.timeout = timeout
         self.max_redirects = max_redirects
+        self.browser = browser
+        self.proxy = format_proxy_line(proxy) if proxy else None
 
     # --------------------------------------------------
 
@@ -156,12 +160,15 @@ class UrlScanner:
         final_response = None
         error_msg = None
 
-        session = requests.Session(impersonate="chrome146")
+        impersonate_val, base_headers = get_browser_profile(self.browser)
+        proxy_arg = {"proxy": self.proxy} if self.proxy else {}
+        session = requests.Session(impersonate=impersonate_val, **proxy_arg)
 
         for _ in range(self.max_redirects):
             try:
                 res = session.get(
                     current_url,
+                    headers=base_headers,
                     allow_redirects=False,
                     timeout=self.timeout
                 )

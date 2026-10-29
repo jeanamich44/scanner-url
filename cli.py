@@ -3,7 +3,7 @@ import json
 import os
 import sys
 from typing import Any, Dict, List
-from src.core import UrlScanner
+from src.core import UrlScanner, ProxyManager
 
 # --------------------------------------------------
 
@@ -74,6 +74,9 @@ def main() -> None:
     parser.add_argument("--output", "-o", type=str, help="Chemin du fichier JSON de sortie")
     parser.add_argument("--json", action="store_true", help="Afficher directement la sortie JSON dans la console")
     parser.add_argument("--timeout", type=float, default=12.0, help="Délai d'attente réseau par requête")
+    parser.add_argument("--browser", "-b", type=str, default="chrome", choices=["chrome", "firefox", "safari", "random"], help="Profil navigateur TLS et headers (chrome, firefox, safari, random)")
+    parser.add_argument("--proxy", "-p", type=str, default=None, help="Proxy unique (ex: http://user:pass@ip:port ou ip:port:user:pass)")
+    parser.add_argument("--proxy-file", type=str, default=None, help="Fichier contenant une liste de proxys")
 
     args = parser.parse_args()
 
@@ -81,7 +84,10 @@ def main() -> None:
         parser.print_help()
         sys.exit(1)
 
-    scanner = UrlScanner(timeout=args.timeout)
+    proxy_mgr = ProxyManager()
+    if args.proxy_file and os.path.exists(args.proxy_file):
+        proxy_mgr.load_file(args.proxy_file)
+
     results: List[Dict[str, Any]] = []
 
     urls_to_scan: List[str] = []
@@ -96,6 +102,15 @@ def main() -> None:
                         urls_to_scan.append(u)
 
     for target in urls_to_scan:
+        chosen_proxy = args.proxy
+        if not chosen_proxy and proxy_mgr.has_proxies():
+            chosen_proxy = proxy_mgr.get_proxy()
+
+        scanner = UrlScanner(
+            timeout=args.timeout,
+            browser=args.browser,
+            proxy=chosen_proxy
+        )
         res = scanner.scan(target)
         results.append(res)
         if not args.json:

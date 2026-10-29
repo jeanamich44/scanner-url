@@ -16,14 +16,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from pydantic import BaseModel
 
+from src.core.scanner import UrlScanner
+from src.core.endpoint_scanner import load_endpoints, probe_fast
+from src.core.browser_profiles import get_browser_profile
+from src.core.proxy_manager import ProxyManager, format_proxy_line
+
 # --------------------------------------------------
 
 BASE_DIR = Path(__file__).resolve().parent
 if str(BASE_DIR) not in sys.path:
     sys.path.insert(0, str(BASE_DIR))
-
-from src.core.scanner import UrlScanner
-from src.core.endpoint_scanner import load_endpoints, probe_fast
 
 # --------------------------------------------------
 
@@ -41,6 +43,9 @@ class BatchRequest(BaseModel):
     bots: Optional[int] = 10
     use_bypass: Optional[bool] = True
     use_mutations: Optional[bool] = True
+    browser: Optional[str] = "chrome"
+    proxies: Optional[List[str]] = None
+    use_proxy: Optional[bool] = False
 
 # --------------------------------------------------
 
@@ -67,6 +72,7 @@ def get_defaults():
         "default_bots": 10,
         "default_timeout": 5.0,
         "default_top_endpoints": 100,
+        "default_browser": "chrome"
     }
 
 # --------------------------------------------------
@@ -104,6 +110,18 @@ async def batch_scan(payload: BatchRequest):
     timeout = max(1.0, min(payload.timeout or 5.0, 30.0))
     use_bypass = payload.use_bypass if payload.use_bypass is not None else True
     use_mutations = payload.use_mutations if payload.use_mutations is not None else True
+    browser_choice = payload.browser or "chrome"
+
+    proxy_mgr = ProxyManager()
+    if payload.use_proxy:
+        if payload.proxies:
+            proxy_mgr.load_list(payload.proxies)
+        else:
+            local_proxy_file = BASE_DIR / "proxy.txt"
+            if not local_proxy_file.exists():
+                local_proxy_file = BASE_DIR / "proxies.txt"
+            if local_proxy_file.exists():
+                proxy_mgr.load_file(str(local_proxy_file))
 
     JOBS[jid] = {
         "status": "running",
@@ -150,7 +168,7 @@ async def batch_scan(payload: BatchRequest):
 
         push("log", {
             "cls": "sys",
-            "msg": f"Runner initialisé avec succès : {total_urls} URLs, {total_ep} endpoints ({total_tasks} vérifications), {concurrency} bots."
+            "msg": f"Runner initialisé avec succès : {total_urls} URLs, {total_ep} endpoints ({total_tasks} vérifications), {concurrency} bots. Profil: {browser_choice.upper()} | Proxys: {proxy_mgr.count()} actifs."
         })
 
         last_stats_emit = 0.0
@@ -189,7 +207,11 @@ async def batch_scan(payload: BatchRequest):
             })
 
         async def bot_worker(wid: int):
-            async with AsyncSession(impersonate="chrome146") as session:
+            impersonate_val, base_headers = get_browser_profile(browser_choice)
+            bot_proxy = proxy_mgr.get_proxy() if proxy_mgr.has_proxies() else None
+            proxy_arg = {"proxy": bot_proxy} if bot_proxy else {}
+
+            async with AsyncSession(impersonate=impersonate_val, **proxy_arg) as session:
                 while not JOBS[jid].get("cancel"):
                     try:
                         u, ep = task_queue.get_nowait()
@@ -208,7 +230,16 @@ async def batch_scan(payload: BatchRequest):
                     })
 
                     try:
-                        r = await probe_fast(session, u, ep_path, score, timeout, use_bypass, use_mutations)
+                        r = await probe_fast(
+                            session=session,
+                            base_url=u,
+                            endpoint=ep_path,
+                            score=score,
+                            timeout=timeout,
+                            use_bypass=use_bypass,
+                            use_mutations=use_mutations,
+                            headers=base_headers,
+                        )
                     except Exception:
                         r = {
                             "status": 0,
