@@ -20,6 +20,7 @@ from src.core.scanner import UrlScanner
 from src.core.endpoint_scanner import load_endpoints, probe_fast
 from src.core.browser_profiles import get_browser_profile
 from src.core.proxy_manager import ProxyManager, format_proxy_line
+from src.core.database import save_hit, fetch_all_hits, fetch_db_stats, delete_all_hits
 
 # --------------------------------------------------
 
@@ -294,7 +295,7 @@ async def batch_scan(payload: BatchRequest):
 
                                 full_url = u.rstrip("/") + ep_path
                                 hit_obj = {
-                                    "id": len(GLOBAL_HITS) + 1,
+                                    "id": 0,
                                     "job_id": jid,
                                     "time": datetime.now().strftime("%H:%M:%S"),
                                     "bot": wid + 1,
@@ -310,7 +311,9 @@ async def batch_scan(payload: BatchRequest):
                                     "matches": r.get("sensitive_matches", []),
                                     "snippet": r.get("snippet", ""),
                                 }
-                                GLOBAL_HITS.append(hit_obj)
+                                db_id = save_hit(hit_obj)
+                                if db_id:
+                                    hit_obj["id"] = db_id
                                 JOBS[jid]["hits"].append(hit_obj)
                                 push("hit", hit_obj)
                                 push("bot", {
@@ -378,13 +381,15 @@ async def cancel_job(jid: str):
 
 @app.get("/api/hits")
 def get_all_hits():
-    return {"hits": GLOBAL_HITS, "total": len(GLOBAL_HITS)}
+    hits = fetch_all_hits()
+    stats = fetch_db_stats()
+    return {"hits": hits, "stats": stats, "total": len(hits)}
 
 # --------------------------------------------------
 
 @app.delete("/api/hits")
 def clear_all_hits():
-    GLOBAL_HITS.clear()
+    delete_all_hits()
     return {"status": "cleared"}
 
 # --------------------------------------------------

@@ -841,10 +841,40 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('taUrls').addEventListener('input', updateUrlsCount);
   updateEngineBadge();
   initSplitters();
+  loadInitialHits();
   if (window.location.pathname === '/hits' || window.location.hash === '#hitsdb') {
     switchNav('hitsdb');
   }
 });
+
+async function loadInitialHits() {
+  try {
+    const res = await fetch('/api/hits');
+    if (res.ok) {
+      const data = await res.json();
+      if (data.hits && data.hits.length) {
+        allHits = data.hits;
+        critHitsCount = 0;
+        highHitsCount = 0;
+        otherHitsCount = 0;
+        allHits.forEach(h => {
+          if (h.type === 'CRITICAL') critHitsCount++;
+          else if (h.type === 'HIGH') highHitsCount++;
+          else otherHitsCount++;
+        });
+        document.getElementById('cntHitsBadge').textContent = allHits.length;
+        document.getElementById('cntCritBadge').textContent = critHitsCount;
+        document.getElementById('cntHighBadge').textContent = highHitsCount;
+        document.getElementById('cntOtherBadge').textContent = otherHitsCount;
+        if (document.getElementById('navHitsBadge')) {
+          document.getElementById('navHitsBadge').textContent = allHits.length;
+        }
+        renderFilteredHits();
+        renderHitsDbPage();
+      }
+    }
+  } catch (e) {}
+}
 
 function switchNav(nav) {
   currentNav = nav;
