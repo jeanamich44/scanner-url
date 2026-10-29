@@ -44,7 +44,7 @@ class BatchRequest(BaseModel):
     top_endpoints: Optional[int] = 100
     bots: Optional[int] = 10
     url_bots: Optional[int] = 10
-    endpoint_bots: Optional[int] = 2
+    endpoint_bots: Optional[int] = 1
     use_bypass: Optional[bool] = True
     use_mutations: Optional[bool] = True
     browser: Optional[str] = "chrome"
@@ -76,7 +76,7 @@ def get_defaults():
         "endpoints_count": len(eps),
         "default_bots": 10,
         "default_url_bots": 10,
-        "default_ep_bots": 2,
+        "default_ep_bots": 1,
         "default_timeout": 5.0,
         "default_top_endpoints": 100,
         "default_browser": "chrome"
@@ -113,8 +113,8 @@ async def batch_scan(payload: BatchRequest):
     if not all_endpoints:
         raise HTTPException(500, "Impossible de charger endpoints.json")
 
-    url_concurrency = max(1, min(payload.url_bots or payload.bots or 10, 50))
-    ep_concurrency = max(1, min(payload.endpoint_bots or 2, 20))
+    url_concurrency = max(1, min(payload.url_bots or payload.bots or 10, 300))
+    ep_concurrency = max(1, min(payload.endpoint_bots or 1, 20))
     total_concurrency = url_concurrency * ep_concurrency
     timeout = max(1.0, min(payload.timeout or 5.0, 30.0))
     use_bypass = payload.use_bypass if payload.use_bypass is not None else True

@@ -483,13 +483,13 @@ body{
     <div class="ctrl-bots" title="Nombre d'URLs traitées simultanément">
       <span>Bots URL:</span>
       <span id="txtUrlBots">10</span>
-      <input type="range" id="rngUrlBots" min="1" max="50" value="10" oninput="document.getElementById('txtUrlBots').textContent=this.value;reinitBots(parseInt(this.value));updateTotalBotsLabel()">
+      <input type="range" id="rngUrlBots" min="1" max="300" value="10" oninput="document.getElementById('txtUrlBots').textContent=this.value;reinitBots(parseInt(this.value));updateTotalBotsLabel()">
     </div>
 
     <div class="ctrl-bots" title="Nombre d'endpoints testés en parallèle par URL">
       <span>Bots Ep:</span>
-      <span id="txtEpBots">2</span>
-      <input type="range" id="rngEpBots" min="1" max="20" value="2" oninput="document.getElementById('txtEpBots').textContent=this.value;updateTotalBotsLabel();reinitBots(parseInt(document.getElementById('rngUrlBots').value))">
+      <span id="txtEpBots">1</span>
+      <input type="range" id="rngEpBots" min="1" max="20" value="1" oninput="document.getElementById('txtEpBots').textContent=this.value;updateTotalBotsLabel();reinitBots(parseInt(document.getElementById('rngUrlBots').value))">
     </div>
 
     <div class="ctrl-radios">
@@ -655,7 +655,7 @@ body{
             <div class="stat-row"><span class="lbl">Erreurs Réseau :</span><span class="val val-red" id="stErrorsVal">0</span></div>
             <div class="stat-row"><span class="lbl">Vitesse CPM :</span><span class="val val-green" id="stCPM">0</span></div>
             <div class="stat-row"><span class="lbl">Temps Écoulé :</span><span class="val" id="stElapsed">0.0s</span></div>
-            <div class="stat-row"><span class="lbl">Bots Actifs :</span><span class="val val-cyan" id="stBotsUsage">0 / 10 (2 ep/u)</span></div>
+            <div class="stat-row"><span class="lbl">Bots Actifs :</span><span class="val val-cyan" id="stBotsUsage">0 / 10 (1 ep/u)</span></div>
           </div>
         </div>
       </div>
@@ -769,11 +769,11 @@ body{
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
         <div>
           <label style="color:var(--tx-dim);display:block;margin-bottom:4px">Bots URL (URLs simultanées)</label>
-          <input type="number" id="inpUrlBotsCfg" min="1" max="50" value="10" onchange="syncBotsFromCfg()" style="width:100%;background:#0d0d10;color:#fff;border:1px solid var(--brd);padding:6px;border-radius:2px">
+          <input type="number" id="inpUrlBotsCfg" min="1" max="300" value="10" onchange="syncBotsFromCfg()" style="width:100%;background:#0d0d10;color:#fff;border:1px solid var(--brd);padding:6px;border-radius:2px">
         </div>
         <div>
           <label style="color:var(--tx-dim);display:block;margin-bottom:4px">Bots Endpoints (Par URL)</label>
-          <input type="number" id="inpEpBotsCfg" min="1" max="20" value="2" onchange="syncBotsFromCfg()" style="width:100%;background:#0d0d10;color:#fff;border:1px solid var(--brd);padding:6px;border-radius:2px">
+          <input type="number" id="inpEpBotsCfg" min="1" max="20" value="1" onchange="syncBotsFromCfg()" style="width:100%;background:#0d0d10;color:#fff;border:1px solid var(--brd);padding:6px;border-radius:2px">
         </div>
       </div>
       <div>
@@ -1235,7 +1235,7 @@ function saveUrls() {
 
 function updateTotalBotsLabel() {
   const ub = parseInt(document.getElementById('rngUrlBots') ? document.getElementById('rngUrlBots').value : 10) || 10;
-  const eb = parseInt(document.getElementById('rngEpBots') ? document.getElementById('rngEpBots').value : 2) || 2;
+  const eb = parseInt(document.getElementById('rngEpBots') ? document.getElementById('rngEpBots').value : 1) || 1;
   if (document.getElementById('inpUrlBotsCfg')) document.getElementById('inpUrlBotsCfg').value = ub;
   if (document.getElementById('inpEpBotsCfg')) document.getElementById('inpEpBotsCfg').value = eb;
   document.getElementById('stBotsUsage').textContent = `0 / ${ub} (${eb} ep/u)`;
@@ -1243,7 +1243,7 @@ function updateTotalBotsLabel() {
 
 function syncBotsFromCfg() {
   const ub = parseInt(document.getElementById('inpUrlBotsCfg') ? document.getElementById('inpUrlBotsCfg').value : 10) || 10;
-  const eb = parseInt(document.getElementById('inpEpBotsCfg') ? document.getElementById('inpEpBotsCfg').value : 2) || 2;
+  const eb = parseInt(document.getElementById('inpEpBotsCfg') ? document.getElementById('inpEpBotsCfg').value : 1) || 1;
   if (document.getElementById('rngUrlBots')) {
     document.getElementById('rngUrlBots').value = ub;
     document.getElementById('txtUrlBots').textContent = ub;
@@ -1265,7 +1265,7 @@ function reinitBots(count) {
   container.innerHTML = '';
   botElements = {};
 
-  const epCount = parseInt(document.getElementById('rngEpBots') ? document.getElementById('rngEpBots').value : 2) || 2;
+  const epCount = parseInt(document.getElementById('rngEpBots') ? document.getElementById('rngEpBots').value : 1) || 1;
   const btnToggle = document.getElementById('btnToggleAllBranches');
   if (btnToggle) {
     btnToggle.style.display = epCount > 1 ? 'inline-block' : 'none';
@@ -1722,8 +1722,8 @@ async function startScan() {
   }
 
   const urlBotsVal = parseInt(document.getElementById('rngUrlBots') ? document.getElementById('rngUrlBots').value : 10) || 10;
-  const epBotsVal = parseInt(document.getElementById('rngEpBots') ? document.getElementById('rngEpBots').value : 2) || 2;
-  const topEpVal = parseInt(document.getElementById('selTopEndpoints').value) || 100;
+  const epBotsVal = parseInt(document.getElementById('rngEpBots') ? document.getElementById('rngEpBots').value : 1) || 1;
+  const topEpVal = parseInt(document.getElementById('selTopEndpoints').value) || 880;
   const timeoutVal = parseFloat(document.getElementById('inpTimeout').value) || 5.0;
 
   const proxRad = document.querySelector('input[name="radProx"]:checked');
@@ -1922,7 +1922,7 @@ function finishRun(statusLabel) {
       });
     }
   }
-  const eb = parseInt(document.getElementById('rngEpBots') ? document.getElementById('rngEpBots').value : 2) || 2;
+  const eb = parseInt(document.getElementById('rngEpBots') ? document.getElementById('rngEpBots').value : 1) || 1;
   document.getElementById('stBotsUsage').textContent = `0 / ${activeBotsCount} (${eb} ep/u)`;
   updateVolumeCalculation();
   showToast(statusLabel);
