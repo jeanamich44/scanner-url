@@ -240,6 +240,12 @@ body{
   background:#181820;border:1px solid var(--brd);padding:2px 8px;border-radius:2px;
   color:var(--tx);font-family:Consolas,monospace;
 }
+.cfg-badge.clickable{
+  cursor:pointer;transition:all 0.15s;display:inline-flex;align-items:center;gap:4px;user-select:none;
+}
+.cfg-badge.clickable:hover{
+  background:#222230;border-color:var(--acc);color:#fff;box-shadow:0 0 6px rgba(0,210,211,0.25);
+}
 .term-log{
   flex:1;background:#08080a;border:1px solid #1e1e24;border-radius:2px;
   padding:6px 8px;font-family:Consolas,monospace;font-size:10px;overflow-y:auto;
@@ -594,9 +600,18 @@ body{
           </div>
         </div>
         <div class="cfg-row">
-          <div>Select CFG: <span class="cfg-badge" id="lblCfgName">Endpoints.json (880)</span></div>
-          <div>Select List: <span class="cfg-badge" id="lblListName">urls.txt (0 URLs)</span></div>
-          <div>Total Requêtes: <span class="cfg-badge" id="lblTotalCalculated" style="color:var(--cyan);font-weight:700">0 (0 URL &times; 880 Ep)</span></div>
+          <div style="cursor:pointer;display:inline-flex;align-items:center;gap:6px" onclick="openModal('configs')" title="Modifier la configuration des endpoints">
+            <span>Select CFG:</span>
+            <span class="cfg-badge clickable" id="lblCfgName">Endpoints.json (880)</span>
+          </div>
+          <div style="cursor:pointer;display:inline-flex;align-items:center;gap:6px" onclick="openModal('wordlists')" title="Gérer la liste des URLs cibles">
+            <span>Select List:</span>
+            <span class="cfg-badge clickable" id="lblListName">urls.txt (0 URLs)</span>
+          </div>
+          <div style="display:inline-flex;align-items:center;gap:6px">
+            <span>Total Requêtes:</span>
+            <span class="cfg-badge" id="lblTotalCalculated" style="color:var(--cyan);font-weight:700">0 (0 URL &times; 880 Ep)</span>
+          </div>
         </div>
         <div class="term-log" id="termLog">
           <div class="log-line sys">Runner initialized successfully!</div>
