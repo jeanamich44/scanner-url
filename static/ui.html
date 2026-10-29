@@ -18,11 +18,12 @@ body{
   background:var(--bg);color:var(--tx);height:100vh;overflow:hidden;
 }
 
-.app-window{display:grid;grid-template-rows:28px 38px 46px 1fr 140px;height:100vh}
+.app-window{display:flex;flex-direction:column;height:100vh;overflow:hidden}
 
 .win-titlebar{
   background:#0d0d0f;border-bottom:1px solid #1c1c22;
   display:flex;align-items:center;justify-content:space-between;padding:0 10px;font-size:11px;color:var(--tx-dim);
+  height:28px;flex-shrink:0;
 }
 .win-titlebar .logo{display:flex;align-items:center;gap:6px;font-weight:600;color:#c0c0d2}
 .win-titlebar .logo svg{fill:#ff9800}
@@ -33,6 +34,7 @@ body{
 .navbar{
   background:var(--s1);border-bottom:1px solid var(--brd);
   display:flex;align-items:center;padding:0 8px;gap:4px;
+  height:38px;flex-shrink:0;
 }
 .nav-item{
   display:flex;align-items:center;gap:6px;padding:6px 12px;font-size:11px;color:var(--tx-dim);
@@ -46,6 +48,7 @@ body{
   background:#141418;border-bottom:1px solid var(--brd);
   display:flex;align-items:center;padding:0 12px;gap:14px;
   overflow-x:auto;white-space:nowrap;
+  height:46px;flex-shrink:0;
 }
 .runner-ctrls::-webkit-scrollbar{height:3px}
 .runner-ctrls::-webkit-scrollbar-thumb{background:var(--brd);border-radius:2px}
@@ -95,15 +98,17 @@ body{
 }
 .btn-stop:hover{background:#0e2a38;color:#fff;border-color:#fff}
 
+.runner-workspace{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative}
+
 .runner-main{
-  display:grid;grid-template-columns:1fr 420px;overflow:hidden;background:#0d0d10;
+  flex:1;min-height:160px;display:flex;flex-direction:row;overflow:hidden;position:relative;background:#0d0d10;
 }
 
-.table-panel{display:flex;flex-direction:column;overflow:hidden;border-right:1px solid var(--brd)}
+.table-panel{flex:1;min-width:280px;display:flex;flex-direction:column;overflow:hidden;position:relative}
 .table-hdr{
   background:#16161b;border-bottom:1px solid var(--brd);display:grid;
   font-size:10px;color:var(--tx-dim);text-transform:uppercase;letter-spacing:0.4px;
-  font-weight:600;padding:5px 8px;
+  font-weight:600;padding:5px 8px;flex-shrink:0;
 }
 .bots-hdr{grid-template-columns:36px 1fr 200px 220px}
 .hits-hdr{grid-template-columns:60px 1fr 140px 65px 70px}
@@ -126,7 +131,7 @@ body{
 .st-ERROR{color:var(--red)}
 .st-IDLE{color:#404050}
 
-.hits-panel{display:flex;flex-direction:column;overflow:hidden;background:#0f0f13}
+.hits-panel{width:480px;min-width:340px;display:flex;flex-direction:column;overflow:hidden;background:#0f0f13;flex-shrink:0;position:relative}
 .hits-list{flex:1;overflow-y:auto;font-family:Consolas,monospace;font-size:10.5px}
 .hits-list::-webkit-scrollbar{width:5px}
 .hits-list::-webkit-scrollbar-thumb{background:var(--brd);border-radius:2px}
@@ -148,7 +153,7 @@ body{
 
 .hits-footer{
   background:#141418;border-top:1px solid var(--brd);display:flex;
-  align-items:center;justify-content:space-between;padding:4px 10px;font-size:10px;
+  align-items:center;justify-content:space-between;padding:4px 10px;font-size:10px;flex-shrink:0;
 }
 .hits-subtabs{display:flex;gap:6px}
 .subtab{
@@ -157,17 +162,54 @@ body{
 .subtab.active{background:#202028;color:#fff}
 .hits-timer{color:var(--tx-dim);font-family:Consolas,monospace}
 
+.split-v{
+  width:5px;cursor:col-resize;background:#181820;border-left:1px solid #23232c;border-right:1px solid #23232c;
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;user-select:none;z-index:10;transition:background 0.15s;
+}
+.split-v:hover, .split-v.resizing{background:var(--acc)}
+.split-handle-v{width:2px;height:24px;background:#424252;border-radius:1px}
+.split-v:hover .split-handle-v, .split-v.resizing .split-handle-v{background:#fff}
+
+.split-h{
+  height:5px;cursor:row-resize;background:#181820;border-top:1px solid #23232c;border-bottom:1px solid #23232c;
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;user-select:none;z-index:10;transition:background 0.15s;
+}
+.split-h:hover, .split-h.resizing{background:var(--acc)}
+.split-handle-h{width:32px;height:2px;background:#424252;border-radius:1px}
+.split-h:hover .split-handle-h, .split-h.resizing .split-handle-h{background:#fff}
+
+.pane-header{
+  background:#141418;border-bottom:1px solid var(--brd);display:flex;
+  align-items:center;justify-content:space-between;padding:3px 8px;
+  font-size:10px;color:var(--tx-dim);font-weight:600;letter-spacing:0.4px;
+  user-select:none;flex-shrink:0;height:24px;
+}
+.pane-title{display:flex;align-items:center;gap:6px;text-transform:uppercase}
+.pane-title svg{width:11px;height:11px;fill:currentColor}
+.pane-ctrls{display:flex;align-items:center;gap:4px}
+.pane-btn{
+  background:transparent;border:none;color:var(--tx-dim);cursor:pointer;
+  padding:1px 5px;border-radius:2px;font-size:11px;line-height:1;display:flex;
+  align-items:center;justify-content:center;transition:all 0.1s;
+}
+.pane-btn:hover{background:var(--s2);color:#fff}
+
+.pane-maximized{
+  position:absolute!important;top:0!important;left:0!important;right:0!important;bottom:0!important;
+  width:100%!important;height:100%!important;z-index:50!important;background:var(--bg)!important;
+}
+
 .runner-bottom{
-  background:#0d0d10;border-top:1px solid var(--brd);
-  display:grid;grid-template-columns:1fr 340px;overflow:hidden;
+  height:175px;min-height:125px;display:flex;flex-direction:row;overflow:hidden;
+  background:#0d0d10;border-top:none;flex-shrink:0;position:relative;
 }
 
 .bottom-left{
-  display:flex;flex-direction:column;border-right:1px solid var(--brd);padding:6px 10px;
-  gap:4px;overflow:hidden;
+  flex:1;min-width:260px;display:flex;flex-direction:column;padding:6px 10px;
+  gap:4px;overflow:hidden;position:relative;
 }
 .cfg-row{
-  display:flex;align-items:center;gap:16px;font-size:10px;color:var(--tx-dim);
+  display:flex;align-items:center;gap:16px;font-size:10px;color:var(--tx-dim);flex-shrink:0;
 }
 .cfg-badge{
   background:#181820;border:1px solid var(--brd);padding:2px 8px;border-radius:2px;
@@ -184,7 +226,7 @@ body{
 .log-line.hit{color:var(--grn);font-weight:600}
 .log-line.err{color:var(--red)}
 .log-line.done{color:var(--acc);font-weight:600}
-.bot-bottom-bar{display:flex;align-items:center;justify-content:space-between}
+.bot-bottom-bar{display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .btn-back{
   background:#1a1a22;border:1px solid var(--brd);color:var(--tx-dim);
   font-size:10px;padding:2px 10px;border-radius:2px;cursor:pointer;
@@ -192,19 +234,27 @@ body{
 .btn-back:hover{color:#fff;background:#242430}
 
 .bottom-right{
-  display:grid;grid-template-columns:1fr 1fr;padding:8px 12px;gap:8px;
-  background:#101014;font-size:10.5px;
+  width:490px;min-width:440px;display:flex;flex-direction:column;overflow:hidden;
+  background:#101014;flex-shrink:0;position:relative;font-size:10.5px;
 }
+.stats-content{
+  flex:1;display:grid;grid-template-columns:1fr 1fr;padding:8px 14px;
+  gap:16px;overflow-y:auto;overflow-x:hidden;
+}
+.stats-content::-webkit-scrollbar{width:4px}
+.stats-content::-webkit-scrollbar-thumb{background:var(--brd);border-radius:2px}
+
 .stat-col h4{
   font-size:9.5px;text-transform:uppercase;color:var(--tx-dim);letter-spacing:0.5px;
-  margin-bottom:4px;display:flex;align-items:center;gap:4px;
+  margin-bottom:4px;display:flex;align-items:center;gap:4px;white-space:nowrap;
 }
-.stat-col h4 svg{width:11px;height:11px;fill:currentColor}
+.stat-col h4 svg{width:11px;height:11px;fill:currentColor;flex-shrink:0}
 .stat-row{
-  display:flex;justify-content:space-between;padding:1px 0;font-family:Consolas,monospace;
+  display:flex;justify-content:space-between;align-items:center;padding:2px 0;
+  font-family:Consolas,monospace;white-space:nowrap;gap:10px;
 }
-.stat-row .lbl{color:var(--tx-dim)}
-.stat-row .val{font-weight:600;color:#fff}
+.stat-row .lbl{color:var(--tx-dim);white-space:nowrap;flex-shrink:0}
+.stat-row .val{font-weight:600;color:#fff;white-space:nowrap;flex-shrink:0;text-align:right}
 .val-green{color:var(--grn)!important}
 .val-orange{color:var(--ora)!important}
 .val-red{color:var(--red)!important}
@@ -350,81 +400,135 @@ body{
     </button>
   </div>
 
-  <div class="runner-main">
-    <div class="table-panel">
-      <div class="table-hdr bots-hdr">
-        <div>Id</div>
-        <div>Data (URL)</div>
-        <div>Endpoint</div>
-        <div>Status</div>
-      </div>
-      <div class="bot-rows" id="botRows"></div>
-    </div>
+  <div class="runner-workspace" id="runnerWorkspace">
 
-    <div class="hits-panel">
-      <div class="table-hdr hits-hdr">
-        <div>Time</div>
-        <div>Data</div>
-        <div>Endpoint</div>
-        <div>Type</div>
-        <div>Capture</div>
-      </div>
-      <div class="hits-list" id="hitsList"></div>
-      <div class="hits-footer">
-        <div class="hits-subtabs">
-          <div class="subtab active" id="tabHitsAll" onclick="filterHitsView('ALL')">Tous (<span id="cntHitsBadge">0</span>)</div>
-          <div class="subtab" id="tabHitsCrit" onclick="filterHitsView('CRITICAL')">Critiques (<span id="cntCritBadge">0</span>)</div>
-          <div class="subtab" id="tabHitsHigh" onclick="filterHitsView('HIGH')">Élevés (<span id="cntHighBadge">0</span>)</div>
-          <div class="subtab" id="tabHitsOther" onclick="filterHitsView('OTHER')">Moyens/Bas (<span id="cntOtherBadge">0</span>)</div>
+    <div class="runner-main" id="runnerMain">
+      <div class="table-panel" id="paneBots">
+        <div class="pane-header">
+          <div class="pane-title">
+            <svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 0 1 2 2v2h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4V4a2 2 0 0 1 2-2z"/></svg>
+            <span>Bots en direct</span>
+          </div>
+          <div class="pane-ctrls">
+            <button class="pane-btn" onclick="toggleMaximize('paneBots')" title="Agrandir / Restaurer">&#9633;</button>
+          </div>
         </div>
-        <div class="hits-timer" id="txtTimer">0 days 00:00:00</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="runner-bottom">
-    <div class="bottom-left">
-      <div class="cfg-row">
-        <div>Select CFG: <span class="cfg-badge" id="lblCfgName">Endpoints.json (880)</span></div>
-        <div>Select List: <span class="cfg-badge" id="lblListName">urls.txt (0 URLs)</span></div>
-      </div>
-      <div class="term-log" id="termLog">
-        <div class="log-line sys">Runner initialized successfully!</div>
-      </div>
-      <div class="bot-bottom-bar">
-        <button class="btn-back" onclick="openModal('wordlists')">&larr; Charger URLs</button>
-        <span id="lblActiveEngine" style="font-size:10px;color:var(--tx-dim)">Profil: Chrome &bull; Proxy: OFF</span>
-      </div>
-    </div>
-
-    <div class="bottom-right">
-      <div class="stat-col">
-        <h4>
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>
-          DONNÉES & RÉSULTATS
-        </h4>
-        <div class="stat-row"><span class="lbl">Total Tests :</span><span class="val" id="stTotal">0</span></div>
-        <div class="stat-row"><span class="lbl">Hits Découverts :</span><span class="val val-green" id="stHitsVal">0</span></div>
-        <div class="stat-row"><span class="lbl">Critiques :</span><span class="val val-red" id="stCritVal">0</span></div>
-        <div class="stat-row"><span class="lbl">Élevés :</span><span class="val val-orange" id="stHighVal">0</span></div>
-        <div class="stat-row"><span class="lbl">Moyens / Bas :</span><span class="val val-yellow" id="stMedVal">0</span></div>
-        <div class="stat-row"><span class="lbl">404 (Miss) :</span><span class="val" id="stBadVal" style="color:var(--tx-dim)">0</span></div>
-        <div class="stat-row"><span class="lbl">Reste à Tester :</span><span class="val val-cyan" id="stToCheckVal">0</span></div>
+        <div class="table-hdr bots-hdr">
+          <div>Id</div>
+          <div>Data (URL)</div>
+          <div>Endpoint</div>
+          <div>Status</div>
+        </div>
+        <div class="bot-rows" id="botRows"></div>
       </div>
 
-      <div class="stat-col">
-        <h4>
-          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
-          PERF & STATS
-        </h4>
-        <div class="stat-row"><span class="lbl">URLs Cibles :</span><span class="val" id="stTotalUrls">0</span></div>
-        <div class="stat-row"><span class="lbl">URLs Actives :</span><span class="val val-green" id="stAliveUrls">0</span></div>
-        <div class="stat-row"><span class="lbl">Erreurs Réseau :</span><span class="val val-red" id="stErrorsVal">0</span></div>
-        <div class="stat-row"><span class="lbl">Vitesse CPM :</span><span class="val val-green" id="stCPM">0</span></div>
-        <div class="stat-row"><span class="lbl">Temps Écoulé :</span><span class="val" id="stElapsed">0.0s</span></div>
-        <div class="stat-row"><span class="lbl">Bots Actifs :</span><span class="val val-cyan" id="stBotsUsage">0 / 10</span></div>
+      <div class="split-v" id="splitVMid" title="Glisser pour redimensionner">
+        <div class="split-handle-v"></div>
+      </div>
+
+      <div class="hits-panel" id="paneHits">
+        <div class="pane-header">
+          <div class="pane-title">
+            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            <span>Hits découverts</span>
+          </div>
+          <div class="pane-ctrls">
+            <button class="pane-btn" onclick="toggleMaximize('paneHits')" title="Agrandir / Restaurer">&#9633;</button>
+          </div>
+        </div>
+        <div class="table-hdr hits-hdr">
+          <div>Time</div>
+          <div>Data</div>
+          <div>Endpoint</div>
+          <div>Type</div>
+          <div>Capture</div>
+        </div>
+        <div class="hits-list" id="hitsList"></div>
+        <div class="hits-footer">
+          <div class="hits-subtabs">
+            <div class="subtab active" id="tabHitsAll" onclick="filterHitsView('ALL')">Tous (<span id="cntHitsBadge">0</span>)</div>
+            <div class="subtab" id="tabHitsCrit" onclick="filterHitsView('CRITICAL')">Critiques (<span id="cntCritBadge">0</span>)</div>
+            <div class="subtab" id="tabHitsHigh" onclick="filterHitsView('HIGH')">Élevés (<span id="cntHighBadge">0</span>)</div>
+            <div class="subtab" id="tabHitsOther" onclick="filterHitsView('OTHER')">Moyens/Bas (<span id="cntOtherBadge">0</span>)</div>
+          </div>
+          <div class="hits-timer" id="txtTimer">0 days 00:00:00</div>
+        </div>
       </div>
     </div>
+
+    <div class="split-h" id="splitH" title="Glisser pour redimensionner">
+      <div class="split-handle-h"></div>
+    </div>
+
+    <div class="runner-bottom" id="runnerBottom">
+      <div class="bottom-left" id="paneLogs">
+        <div class="pane-header">
+          <div class="pane-title">
+            <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2m0 14H4V8h16v10z"/></svg>
+            <span>Console & Configurations</span>
+          </div>
+          <div class="pane-ctrls">
+            <button class="pane-btn" onclick="toggleMaximize('paneLogs')" title="Agrandir / Restaurer">&#9633;</button>
+          </div>
+        </div>
+        <div class="cfg-row">
+          <div>Select CFG: <span class="cfg-badge" id="lblCfgName">Endpoints.json (880)</span></div>
+          <div>Select List: <span class="cfg-badge" id="lblListName">urls.txt (0 URLs)</span></div>
+        </div>
+        <div class="term-log" id="termLog">
+          <div class="log-line sys">Runner initialized successfully!</div>
+        </div>
+        <div class="bot-bottom-bar">
+          <button class="btn-back" onclick="openModal('wordlists')">&larr; Charger URLs</button>
+          <span id="lblActiveEngine" style="font-size:10px;color:var(--tx-dim)">Profil: Chrome &bull; Proxy: OFF</span>
+        </div>
+      </div>
+
+      <div class="split-v" id="splitVBottom" title="Glisser pour redimensionner">
+        <div class="split-handle-v"></div>
+      </div>
+
+      <div class="bottom-right" id="paneStats">
+        <div class="pane-header">
+          <div class="pane-title">
+            <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2m-7 14H6v-4h6v4m6 0h-4V9h4v8z"/></svg>
+            <span>Données & Performances</span>
+          </div>
+          <div class="pane-ctrls">
+            <button class="pane-btn" onclick="toggleMaximize('paneStats')" title="Agrandir / Restaurer">&#9633;</button>
+          </div>
+        </div>
+        <div class="stats-content">
+          <div class="stat-col">
+            <h4>
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>
+              DONNÉES & RÉSULTATS
+            </h4>
+            <div class="stat-row"><span class="lbl">Total Tests :</span><span class="val" id="stTotal">0</span></div>
+            <div class="stat-row"><span class="lbl">Hits Découverts :</span><span class="val val-green" id="stHitsVal">0</span></div>
+            <div class="stat-row"><span class="lbl">Critiques :</span><span class="val val-red" id="stCritVal">0</span></div>
+            <div class="stat-row"><span class="lbl">Élevés :</span><span class="val val-orange" id="stHighVal">0</span></div>
+            <div class="stat-row"><span class="lbl">Moyens / Bas :</span><span class="val val-yellow" id="stMedVal">0</span></div>
+            <div class="stat-row"><span class="lbl">404 (Miss) :</span><span class="val" id="stBadVal" style="color:var(--tx-dim)">0</span></div>
+            <div class="stat-row"><span class="lbl">Reste à Tester :</span><span class="val val-cyan" id="stToCheckVal">0</span></div>
+          </div>
+
+          <div class="stat-col">
+            <h4>
+              <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+              PERF & STATS
+            </h4>
+            <div class="stat-row"><span class="lbl">URLs Cibles :</span><span class="val" id="stTotalUrls">0</span></div>
+            <div class="stat-row"><span class="lbl">URLs Actives :</span><span class="val val-green" id="stAliveUrls">0</span></div>
+            <div class="stat-row"><span class="lbl">Erreurs Réseau :</span><span class="val val-red" id="stErrorsVal">0</span></div>
+            <div class="stat-row"><span class="lbl">Vitesse CPM :</span><span class="val val-green" id="stCPM">0</span></div>
+            <div class="stat-row"><span class="lbl">Temps Écoulé :</span><span class="val" id="stElapsed">0.0s</span></div>
+            <div class="stat-row"><span class="lbl">Bots Actifs :</span><span class="val val-cyan" id="stBotsUsage">0 / 10 (2 ep/u)</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 
 </div>
@@ -558,12 +662,172 @@ let storedUrls = [];
 let allHits = [];
 let botElements = {};
 let activeBotsCount = 10;
+let maximizedPane = null;
 
 document.addEventListener('DOMContentLoaded', () => {
   reinitBots(10);
   document.getElementById('taUrls').addEventListener('input', updateUrlsCount);
   updateEngineBadge();
+  initSplitters();
 });
+
+function toggleMaximize(paneId) {
+  const pane = document.getElementById(paneId);
+  if (!pane) return;
+
+  if (maximizedPane === paneId) {
+    pane.classList.remove('pane-maximized');
+    maximizedPane = null;
+    const btn = pane.querySelector('.pane-btn');
+    if (btn) btn.innerHTML = '&#9633;';
+  } else {
+    if (maximizedPane) {
+      const prev = document.getElementById(maximizedPane);
+      if (prev) {
+        prev.classList.remove('pane-maximized');
+        const prevBtn = prev.querySelector('.pane-btn');
+        if (prevBtn) prevBtn.innerHTML = '&#9633;';
+      }
+    }
+    pane.classList.add('pane-maximized');
+    maximizedPane = paneId;
+    const btn = pane.querySelector('.pane-btn');
+    if (btn) btn.innerHTML = '&#10064;';
+  }
+}
+
+function initSplitters() {
+  const workspace = document.getElementById('runnerWorkspace');
+  const runnerMain = document.getElementById('runnerMain');
+  const runnerBottom = document.getElementById('runnerBottom');
+  const splitH = document.getElementById('splitH');
+
+  const paneHits = document.getElementById('paneHits');
+  const splitVMid = document.getElementById('splitVMid');
+
+  const paneStats = document.getElementById('paneStats');
+  const splitVBottom = document.getElementById('splitVBottom');
+
+  try {
+    const saved = JSON.parse(localStorage.getItem('scanner_panel_sizes') || '{}');
+    if (saved.bottomHeight && runnerBottom) runnerBottom.style.height = saved.bottomHeight + 'px';
+    if (saved.hitsWidth && paneHits) paneHits.style.width = saved.hitsWidth + 'px';
+    if (saved.statsWidth && paneStats) paneStats.style.width = saved.statsWidth + 'px';
+  } catch (e) {}
+
+  function saveSizes() {
+    try {
+      const data = {
+        bottomHeight: runnerBottom ? runnerBottom.offsetHeight : 175,
+        hitsWidth: paneHits ? paneHits.offsetWidth : 480,
+        statsWidth: paneStats ? paneStats.offsetWidth : 490
+      };
+      localStorage.setItem('scanner_panel_sizes', JSON.stringify(data));
+    } catch (e) {}
+  }
+
+  if (splitH && workspace && runnerBottom) {
+    splitH.addEventListener('mousedown', function(e) {
+      e.preventDefault();
+      splitH.classList.add('resizing');
+      document.body.style.cursor = 'row-resize';
+      document.body.style.userSelect = 'none';
+
+      function onMouseMove(ev) {
+        const wsRect = workspace.getBoundingClientRect();
+        let newBottomHeight = wsRect.bottom - ev.clientY;
+        const minBottom = 120;
+        const minMain = 150;
+        const maxBottom = wsRect.height - minMain;
+
+        if (newBottomHeight < minBottom) newBottomHeight = minBottom;
+        if (newBottomHeight > maxBottom) newBottomHeight = maxBottom;
+
+        runnerBottom.style.height = newBottomHeight + 'px';
+      }
+
+      function onMouseUp() {
+        splitH.classList.remove('resizing');
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+        window.removeEventListener('mousemove', onMouseMove);
+        window.removeEventListener('mouseup', onMouseUp);
+        saveSizes();
+      }
+
+      window.addEventListener('mousemove', onMouseMove);
+      window.addEventListener('mouseup', onMouseUp);
+    });
+  }
+
+  if (splitVMid && runnerMain && paneHits) {
+    splitVMid.addEventListener('mousedown', function(e) {
+      e.preventDefault();
+      splitVMid.classList.add('resizing');
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+
+      function onMouseMove(ev) {
+        const mainRect = runnerMain.getBoundingClientRect();
+        let newHitsWidth = mainRect.right - ev.clientX;
+        const minHits = 320;
+        const minBots = 280;
+        const maxHits = mainRect.width - minBots;
+
+        if (newHitsWidth < minHits) newHitsWidth = minHits;
+        if (newHitsWidth > maxHits) newHitsWidth = maxHits;
+
+        paneHits.style.width = newHitsWidth + 'px';
+      }
+
+      function onMouseUp() {
+        splitVMid.classList.remove('resizing');
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+        window.removeEventListener('mousemove', onMouseMove);
+        window.removeEventListener('mouseup', onMouseUp);
+        saveSizes();
+      }
+
+      window.addEventListener('mousemove', onMouseMove);
+      window.addEventListener('mouseup', onMouseUp);
+    });
+  }
+
+  if (splitVBottom && runnerBottom && paneStats) {
+    splitVBottom.addEventListener('mousedown', function(e) {
+      e.preventDefault();
+      splitVBottom.classList.add('resizing');
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+
+      function onMouseMove(ev) {
+        const bRect = runnerBottom.getBoundingClientRect();
+        let newStatsWidth = bRect.right - ev.clientX;
+        const minStats = 440;
+        const minLogs = 260;
+        const maxStats = bRect.width - minLogs;
+
+        if (newStatsWidth < minStats) newStatsWidth = minStats;
+        if (newStatsWidth > maxStats) newStatsWidth = maxStats;
+
+        paneStats.style.width = newStatsWidth + 'px';
+      }
+
+      function onMouseUp() {
+        splitVBottom.classList.remove('resizing');
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+        window.removeEventListener('mousemove', onMouseMove);
+        window.removeEventListener('mouseup', onMouseUp);
+        saveSizes();
+      }
+
+      window.addEventListener('mousemove', onMouseMove);
+      window.addEventListener('mouseup', onMouseUp);
+    });
+  }
+}
 
 function syncBrowserProfile(val) {
   if (document.getElementById('selQuickBrowser')) document.getElementById('selQuickBrowser').value = val;
@@ -1023,7 +1287,8 @@ function finishRun(statusLabel) {
   for (let i = 0; i < activeBotsCount; i++) {
     updateBotState(i, '—', '—', '<<< IDLE >>>');
   }
-  document.getElementById('stBotsUsage').textContent = '0 / ' + activeBotsCount;
+  const eb = parseInt(document.getElementById('rngEpBots') ? document.getElementById('rngEpBots').value : 2) || 2;
+  document.getElementById('stBotsUsage').textContent = `0 / ${activeBotsCount} (${eb} ep/u)`;
   showToast(statusLabel);
 }
 
