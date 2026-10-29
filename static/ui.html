@@ -110,14 +110,14 @@ body{
   font-size:10px;color:var(--tx-dim);text-transform:uppercase;letter-spacing:0.4px;
   font-weight:600;padding:5px 8px;flex-shrink:0;
 }
-.bots-hdr{grid-template-columns:36px 1fr 200px 220px}
+.bots-hdr{grid-template-columns:36px 1fr 220px 220px}
 .hits-hdr{grid-template-columns:60px 1fr 140px 65px 70px}
 
 .bot-rows{flex:1;overflow-y:auto;background:#0d0d10;font-family:Consolas,monospace;font-size:11px}
 .bot-rows::-webkit-scrollbar{width:5px}
 .bot-rows::-webkit-scrollbar-thumb{background:var(--brd);border-radius:2px}
 .bot-row{
-  display:grid;grid-template-columns:36px 1fr 200px 220px;padding:3px 8px;
+  display:grid;grid-template-columns:36px 1fr 220px 220px;padding:3px 8px;
   border-bottom:1px solid #16161c;align-items:center;height:25px;white-space:nowrap;
   cursor:pointer;transition:background 0.1s;
 }
@@ -214,10 +214,10 @@ body{
 .pane-ctrls{display:flex;align-items:center;gap:4px}
 .pane-btn{
   background:transparent;border:none;color:var(--tx-dim);cursor:pointer;
-  padding:1px 5px;border-radius:2px;font-size:11px;line-height:1;display:flex;
+  width:20px;height:20px;border-radius:2px;display:flex;
   align-items:center;justify-content:center;transition:all 0.1s;
 }
-.pane-btn:hover{background:var(--s2);color:#fff}
+.pane-btn:hover{background:var(--s2);color:var(--cyan)}
 
 .pane-maximized{
   position:absolute!important;top:0!important;left:0!important;right:0!important;bottom:0!important;
@@ -257,12 +257,7 @@ body{
 .log-line.hit{color:var(--grn);font-weight:600}
 .log-line.err{color:var(--red)}
 .log-line.done{color:var(--acc);font-weight:600}
-.bot-bottom-bar{display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.btn-back{
-  background:#1a1a22;border:1px solid var(--brd);color:var(--tx-dim);
-  font-size:10px;padding:2px 10px;border-radius:2px;cursor:pointer;
-}
-.btn-back:hover{color:#fff;background:#242430}
+.bot-bottom-bar{display:flex;align-items:center;justify-content:flex-end;flex-shrink:0}
 
 .bottom-right{
   width:490px;min-width:440px;display:flex;flex-direction:column;overflow:hidden;
@@ -535,13 +530,13 @@ body{
             <span>Bots en direct</span>
           </div>
           <div class="pane-ctrls">
-            <button class="pane-btn" onclick="toggleMaximize('paneBots')" title="Agrandir / Restaurer">&#9633;</button>
+            <button class="pane-btn" onclick="toggleMaximize('paneBots')" title="Agrandir en plein écran"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
           </div>
         </div>
         <div class="table-hdr bots-hdr">
           <div>Id</div>
           <div>Data (URL)</div>
-          <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleAllBranches()" title="Déplier / replier toutes les branches sous-bots">
+          <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding-right:12px;gap:6px" onclick="toggleAllBranches()" title="Déplier / replier toutes les branches sous-bots">
             <span>Endpoint</span>
             <span id="btnToggleAllBranches" style="font-size:9px;color:var(--acc);font-weight:700;letter-spacing:0.3px">DÉPLIER TOUT</span>
           </div>
@@ -561,7 +556,7 @@ body{
             <span>Hits découverts</span>
           </div>
           <div class="pane-ctrls">
-            <button class="pane-btn" onclick="toggleMaximize('paneHits')" title="Agrandir / Restaurer">&#9633;</button>
+            <button class="pane-btn" onclick="toggleMaximize('paneHits')" title="Agrandir en plein écran"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
           </div>
         </div>
         <div class="table-hdr hits-hdr">
@@ -596,7 +591,7 @@ body{
             <span>Console & Configurations</span>
           </div>
           <div class="pane-ctrls">
-            <button class="pane-btn" onclick="toggleMaximize('paneLogs')" title="Agrandir / Restaurer">&#9633;</button>
+            <button class="pane-btn" onclick="toggleMaximize('paneLogs')" title="Agrandir en plein écran"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
           </div>
         </div>
         <div class="cfg-row">
@@ -617,7 +612,6 @@ body{
           <div class="log-line sys">Runner initialized successfully!</div>
         </div>
         <div class="bot-bottom-bar">
-          <button class="btn-back" onclick="openModal('wordlists')">&larr; Charger URLs</button>
           <span id="lblActiveEngine" style="font-size:10px;color:var(--tx-dim)">Profil: Chrome &bull; Proxy: OFF</span>
         </div>
       </div>
@@ -633,7 +627,7 @@ body{
             <span>Données & Performances</span>
           </div>
           <div class="pane-ctrls">
-            <button class="pane-btn" onclick="toggleMaximize('paneStats')" title="Agrandir / Restaurer">&#9633;</button>
+            <button class="pane-btn" onclick="toggleMaximize('paneStats')" title="Agrandir en plein écran"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
           </div>
         </div>
         <div class="stats-content">
@@ -724,7 +718,7 @@ body{
 
 </div>
 
-<div class="modal-backdrop" id="modalWordlists">
+<div class="modal-backdrop" id="modalWordlists" onclick="if(event.target===this)closeModal('wordlists')">
   <div class="modal-box">
     <div class="modal-hdr">
       <span>Wordlists - Liste d'URLs Cibles</span>
@@ -748,7 +742,7 @@ body{
   </div>
 </div>
 
-<div class="modal-backdrop" id="modalConfigs">
+<div class="modal-backdrop" id="modalConfigs" onclick="if(event.target===this)closeModal('configs')">
   <div class="modal-box">
     <div class="modal-hdr">
       <span>Configs - Paramètres de scan des Endpoints</span>
@@ -810,7 +804,7 @@ body{
   </div>
 </div>
 
-<div class="modal-backdrop" id="modalHitDetails">
+<div class="modal-backdrop" id="modalHitDetails" onclick="if(event.target===this)closeModal('hitDetails')">
   <div class="modal-box" style="width:720px;max-width:94vw">
     <div class="modal-hdr">
       <div style="display:flex;align-items:center;gap:8px">
@@ -891,6 +885,22 @@ document.addEventListener('DOMContentLoaded', () => {
   if (window.location.pathname === '/hits' || window.location.hash === '#hitsdb') {
     switchNav('hitsdb');
   }
+
+  document.querySelectorAll('.modal-backdrop').forEach(bd => {
+    bd.addEventListener('click', (e) => {
+      if (e.target === bd) {
+        bd.classList.remove('open');
+      }
+    });
+  });
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.modal-backdrop.open').forEach(bd => {
+        bd.classList.remove('open');
+      });
+    }
+  });
 });
 
 async function loadInitialHits() {
@@ -943,6 +953,9 @@ function switchNav(nav) {
   }
 }
 
+const ICON_MAXIMIZE = '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>';
+const ICON_RESTORE = '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14h6m0 0v6m0-6L3 21m17-11h-6m0 0V4m0 6l7-7"/></svg>';
+
 function toggleMaximize(paneId) {
   const pane = document.getElementById(paneId);
   if (!pane) return;
@@ -951,20 +964,29 @@ function toggleMaximize(paneId) {
     pane.classList.remove('pane-maximized');
     maximizedPane = null;
     const btn = pane.querySelector('.pane-btn');
-    if (btn) btn.innerHTML = '&#9633;';
+    if (btn) {
+      btn.innerHTML = ICON_MAXIMIZE;
+      btn.title = 'Agrandir en plein écran';
+    }
   } else {
     if (maximizedPane) {
       const prev = document.getElementById(maximizedPane);
       if (prev) {
         prev.classList.remove('pane-maximized');
         const prevBtn = prev.querySelector('.pane-btn');
-        if (prevBtn) prevBtn.innerHTML = '&#9633;';
+        if (prevBtn) {
+          prevBtn.innerHTML = ICON_MAXIMIZE;
+          prevBtn.title = 'Agrandir en plein écran';
+        }
       }
     }
     pane.classList.add('pane-maximized');
     maximizedPane = paneId;
     const btn = pane.querySelector('.pane-btn');
-    if (btn) btn.innerHTML = '&#10064;';
+    if (btn) {
+      btn.innerHTML = ICON_RESTORE;
+      btn.title = 'Restaurer la taille d\'origine';
+    }
   }
 }
 
