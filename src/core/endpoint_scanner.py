@@ -9,9 +9,11 @@ from src.core.browser_profiles import get_browser_profile
 
 # --------------------------------------------------
 
-ENDPOINTS_PATH = Path(__file__).resolve().parents[2] / "endpoints.json"
+ENDPOINTS_PATH = Path(__file__).resolve().parents[2] / "data" / "endpoints.json"
 if not ENDPOINTS_PATH.exists():
-    ENDPOINTS_PATH = Path(__file__).resolve().parents[3] / "endpoints.json"
+    ENDPOINTS_PATH = Path(__file__).resolve().parents[2] / "endpoints.json"
+if not ENDPOINTS_PATH.exists():
+    ENDPOINTS_PATH = Path(r"C:\Users\cuba\Desktop\Pas Touche\Programmation\Creation\scanner-url\data\endpoints.json")
 if not ENDPOINTS_PATH.exists():
     ENDPOINTS_PATH = Path(r"C:\Users\cuba\Desktop\Pas Touche\Programmation\Creation\endpoints.json")
 
