@@ -146,11 +146,12 @@ async def batch_scan(payload: BatchRequest):
                 task_queue.put_nowait((u, ep))
 
         start_time = time.time()
+        alive_targets = set()
         g = {
             "done": 0,
             "hits": 0,
             "bad": 0,
-            "retries": 0,
+            "errors": 0,
             "critical": 0,
             "high": 0,
             "medium": 0,
@@ -191,9 +192,8 @@ async def batch_scan(payload: BatchRequest):
                 "to_check": to_check,
                 "pct": pct,
                 "hits": g["hits"],
-                "custom": 0,
                 "bad": g["bad"],
-                "retries": g["retries"],
+                "errors": g["errors"],
                 "cpm": cpm,
                 "elapsed": elapsed,
                 "time_left": time_left,
@@ -205,6 +205,7 @@ async def batch_scan(payload: BatchRequest):
                 "low": g["low"],
                 "info": g["info"],
                 "total_urls": total_urls,
+                "alive_urls": len(alive_targets),
             })
 
         async def bot_worker(wid: int):
@@ -257,6 +258,11 @@ async def batch_scan(payload: BatchRequest):
                     sev = r.get("severity", "none")
                     status_code = r.get("status")
 
+                    if not status_code:
+                        g["errors"] += 1
+                    else:
+                        alive_targets.add(u)
+
                     if r.get("accessible"):
                         g["hits"] += 1
                         if sev in g:
@@ -287,7 +293,8 @@ async def batch_scan(payload: BatchRequest):
                             "msg": f"[HIT] Bot {wid+1} : {u}{ep_path} \u2192 {status_code} [{sev.upper()}] ({r.get('content_length')}b)"
                         })
                     else:
-                        g["bad"] += 1
+                        if status_code == 404:
+                            g["bad"] += 1
                         push("bot", {
                             "id": wid,
                             "url": u,

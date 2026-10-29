@@ -316,23 +316,22 @@ body{
 
     <div class="ctrl-radios">
       <span>Profil:</span>
-      <select id="selQuickBrowser" onchange="if(document.getElementById('selBrowserProfile'))document.getElementById('selBrowserProfile').value=this.value" style="background:#0d0d10;border:1px solid var(--brd);color:var(--cyan);font-size:10px;padding:2px 4px;border-radius:2px;outline:none">
-        <option value="chrome" selected>Chrome 146</option>
-        <option value="firefox">Firefox 147</option>
-        <option value="safari">Safari 18.0</option>
-        <option value="random">Rotation</option>
+      <select id="selQuickBrowser" onchange="syncBrowserProfile(this.value)" style="background:#0d0d10;border:1px solid var(--brd);color:var(--cyan);font-size:10px;padding:2px 4px;border-radius:2px;outline:none">
+        <option value="chrome" selected>Chrome</option>
+        <option value="safari">Safari</option>
+        <option value="firefox">Firefox</option>
+        <option value="random">Aléatoire</option>
       </select>
     </div>
 
     <div class="ctrl-radios">
-      <span>Prox:</span>
-      <label><input type="radio" name="radProx" value="DEF"> DEF</label>
-      <label><input type="radio" name="radProx" value="ON" checked> ON</label>
-      <label><input type="radio" name="radProx" value="OFF"> OFF</label>
+      <span>Proxy:</span>
+      <label><input type="radio" name="radProx" value="ON" onchange="updateEngineBadge()"> ON</label>
+      <label><input type="radio" name="radProx" value="OFF" checked onchange="updateEngineBadge()"> OFF</label>
     </div>
 
     <div class="ctrl-radios">
-      <span>Mut:</span>
+      <span>Mutations:</span>
       <label><input type="radio" name="radMut" value="ON" checked> ON</label>
       <label><input type="radio" name="radMut" value="OFF"> OFF</label>
     </div>
@@ -365,9 +364,10 @@ body{
       <div class="hits-list" id="hitsList"></div>
       <div class="hits-footer">
         <div class="hits-subtabs">
-          <div class="subtab active" id="stHits">Hits (<span id="cntHitsBadge">0</span>)</div>
-          <div class="subtab" id="stCustom">Custom</div>
-          <div class="subtab" id="stToCheck">ToCheck</div>
+          <div class="subtab active" id="tabHitsAll" onclick="filterHitsView('ALL')">Tous (<span id="cntHitsBadge">0</span>)</div>
+          <div class="subtab" id="tabHitsCrit" onclick="filterHitsView('CRITICAL')">Critiques (<span id="cntCritBadge">0</span>)</div>
+          <div class="subtab" id="tabHitsHigh" onclick="filterHitsView('HIGH')">Élevés (<span id="cntHighBadge">0</span>)</div>
+          <div class="subtab" id="tabHitsOther" onclick="filterHitsView('OTHER')">Moyens/Bas (<span id="cntOtherBadge">0</span>)</div>
         </div>
         <div class="hits-timer" id="txtTimer">0 days 00:00:00</div>
       </div>
@@ -385,7 +385,7 @@ body{
       </div>
       <div class="bot-bottom-bar">
         <button class="btn-back" onclick="openModal('wordlists')">&larr; Charger URLs</button>
-        <span style="font-size:10px;color:var(--tx-faint)">Bypass: chrome146 &bull; JA4 TLS &bull; Header Rotation</span>
+        <span id="lblActiveEngine" style="font-size:10px;color:var(--tx-dim)">Profil: Chrome &bull; Proxy: OFF</span>
       </div>
     </div>
 
@@ -393,15 +393,15 @@ body{
       <div class="stat-col">
         <h4>
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>
-          DATA
+          DONNÉES & RÉSULTATS
         </h4>
-        <div class="stat-row"><span class="lbl">Total:</span><span class="val" id="stTotal">0</span></div>
-        <div class="stat-row"><span class="lbl">Hits:</span><span class="val val-green" id="stHitsVal">0</span></div>
-        <div class="stat-row"><span class="lbl">Custom:</span><span class="val val-orange" id="stCustomVal">0</span></div>
-        <div class="stat-row"><span class="lbl">Bad:</span><span class="val val-red" id="stBadVal">0</span></div>
-        <div class="stat-row"><span class="lbl">Retries:</span><span class="val val-yellow" id="stRetriesVal">0</span></div>
-        <div class="stat-row"><span class="lbl">To Check:</span><span class="val" id="stToCheckVal">0</span></div>
-        <div class="stat-row"><span class="lbl">OCR Rate:</span><span class="val val-cyan">0 %</span></div>
+        <div class="stat-row"><span class="lbl">Total Tests :</span><span class="val" id="stTotal">0</span></div>
+        <div class="stat-row"><span class="lbl">Hits Découverts :</span><span class="val val-green" id="stHitsVal">0</span></div>
+        <div class="stat-row"><span class="lbl">Critiques :</span><span class="val val-red" id="stCritVal">0</span></div>
+        <div class="stat-row"><span class="lbl">Élevés :</span><span class="val val-orange" id="stHighVal">0</span></div>
+        <div class="stat-row"><span class="lbl">Moyens / Bas :</span><span class="val val-yellow" id="stMedVal">0</span></div>
+        <div class="stat-row"><span class="lbl">404 (Miss) :</span><span class="val" id="stBadVal" style="color:var(--tx-dim)">0</span></div>
+        <div class="stat-row"><span class="lbl">Reste à Tester :</span><span class="val val-cyan" id="stToCheckVal">0</span></div>
       </div>
 
       <div class="stat-col">
@@ -409,13 +409,12 @@ body{
           <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
           PERF & STATS
         </h4>
-        <div class="stat-row"><span class="lbl">Total URLs:</span><span class="val" id="stTotalUrls">0</span></div>
-        <div class="stat-row"><span class="lbl">Alive URLs:</span><span class="val val-green" id="stAliveUrls">0</span></div>
-        <div class="stat-row"><span class="lbl">Banned:</span><span class="val">0</span></div>
-        <div class="stat-row"><span class="lbl">Errors:</span><span class="val val-red" id="stErrorsVal">0</span></div>
-        <div class="stat-row"><span class="lbl">CPM:</span><span class="val val-green" id="stCPM">0</span></div>
-        <div class="stat-row"><span class="lbl">Elapsed:</span><span class="val" id="stElapsed">0.0s</span></div>
-        <div class="stat-row"><span class="lbl">Usage:</span><span class="val val-cyan" id="stBotsUsage">0 / 10</span></div>
+        <div class="stat-row"><span class="lbl">URLs Cibles :</span><span class="val" id="stTotalUrls">0</span></div>
+        <div class="stat-row"><span class="lbl">URLs Actives :</span><span class="val val-green" id="stAliveUrls">0</span></div>
+        <div class="stat-row"><span class="lbl">Erreurs Réseau :</span><span class="val val-red" id="stErrorsVal">0</span></div>
+        <div class="stat-row"><span class="lbl">Vitesse CPM :</span><span class="val val-green" id="stCPM">0</span></div>
+        <div class="stat-row"><span class="lbl">Temps Écoulé :</span><span class="val" id="stElapsed">0.0s</span></div>
+        <div class="stat-row"><span class="lbl">Bots Actifs :</span><span class="val val-cyan" id="stBotsUsage">0 / 10</span></div>
       </div>
     </div>
   </div>
@@ -470,12 +469,12 @@ body{
         </div>
       </div>
       <div>
-        <label style="color:var(--tx-dim);display:block;margin-bottom:4px">Profil Navigateur (TLS & Headers Stricts)</label>
-        <select id="selBrowserProfile" onchange="document.getElementById('selQuickBrowser').value=this.value" style="width:100%;background:#0d0d10;color:var(--cyan);border:1px solid var(--brd);padding:6px;border-radius:2px;font-family:monospace;font-size:11px">
-          <option value="chrome" selected>Chrome (chrome146 - TLS JA4 & Client Hints stricts)</option>
-          <option value="firefox">Firefox (firefox147 - TLS & HTTP/2 Priority sans Client Hints)</option>
-          <option value="safari">Safari (safari18_0 - WebKit TLS & Headers Mac OS)</option>
-          <option value="random">Rotation dynamique par bot (Profils non mélangés)</option>
+        <label style="color:var(--tx-dim);display:block;margin-bottom:4px">Profil Navigateur</label>
+        <select id="selBrowserProfile" onchange="syncBrowserProfile(this.value)" style="width:100%;background:#0d0d10;color:var(--cyan);border:1px solid var(--brd);padding:6px;border-radius:2px;font-family:monospace;font-size:11px">
+          <option value="chrome" selected>Chrome (Dernière version 146)</option>
+          <option value="safari">Safari (Dernière version 18.0)</option>
+          <option value="firefox">Firefox (Dernière version 147)</option>
+          <option value="random">Aléatoire (Rotation par bot)</option>
         </select>
       </div>
       <div>
@@ -545,7 +544,24 @@ let activeBotsCount = 10;
 document.addEventListener('DOMContentLoaded', () => {
   reinitBots(10);
   document.getElementById('taUrls').addEventListener('input', updateUrlsCount);
+  updateEngineBadge();
 });
+
+function syncBrowserProfile(val) {
+  if (document.getElementById('selQuickBrowser')) document.getElementById('selQuickBrowser').value = val;
+  if (document.getElementById('selBrowserProfile')) document.getElementById('selBrowserProfile').value = val;
+  updateEngineBadge();
+}
+
+function updateEngineBadge() {
+  const b = document.getElementById('selQuickBrowser') ? document.getElementById('selQuickBrowser').value : 'chrome';
+  const names = { chrome: 'Chrome', safari: 'Safari', firefox: 'Firefox', random: 'Aléatoire' };
+  const bName = names[b] || 'Chrome';
+  const proxRad = document.querySelector('input[name="radProx"]:checked');
+  const proxState = (proxRad && proxRad.value === 'ON') ? 'ON' : 'OFF';
+  const el = document.getElementById('lblActiveEngine');
+  if (el) el.innerHTML = `Profil: ${bName} &bull; Proxy: ${proxState}`;
+}
 
 function updateUrlsCount() {
   const text = document.getElementById('taUrls').value.trim();
@@ -661,23 +677,82 @@ function addLog(cls, msg) {
   box.scrollTop = box.scrollHeight;
 }
 
+let currentHitsFilter = 'ALL';
+let critHitsCount = 0;
+let highHitsCount = 0;
+let otherHitsCount = 0;
+
+function filterHitsView(type) {
+  currentHitsFilter = type;
+  const tabs = {
+    'ALL': document.getElementById('tabHitsAll'),
+    'CRITICAL': document.getElementById('tabHitsCrit'),
+    'HIGH': document.getElementById('tabHitsHigh'),
+    'OTHER': document.getElementById('tabHitsOther')
+  };
+  Object.keys(tabs).forEach(k => {
+    if (tabs[k]) {
+      if (k === type) tabs[k].classList.add('active');
+      else tabs[k].classList.remove('active');
+    }
+  });
+  renderFilteredHits();
+}
+
+function renderFilteredHits() {
+  const list = document.getElementById('hitsList');
+  list.innerHTML = '';
+  const filtered = allHits.filter(h => {
+    if (currentHitsFilter === 'ALL') return true;
+    if (currentHitsFilter === 'CRITICAL') return h.type === 'CRITICAL';
+    if (currentHitsFilter === 'HIGH') return h.type === 'HIGH';
+    if (currentHitsFilter === 'OTHER') return h.type !== 'CRITICAL' && h.type !== 'HIGH';
+    return true;
+  });
+
+  filtered.forEach(hit => {
+    const row = document.createElement('div');
+    row.className = 'hit-row';
+    row.innerHTML = `
+      <div class="hit-time">${hit.time}</div>
+      <div class="hit-data" title="${esc(hit.url)}">${esc(hit.url)}</div>
+      <div class="hit-ep" title="${esc(hit.ep)}">${esc(hit.ep)}</div>
+      <div class="hit-type type-${hit.type}">${hit.type}</div>
+      <div class="hit-cap" title="${esc(hit.capture)}">${esc(hit.capture)}</div>
+    `;
+    list.appendChild(row);
+  });
+}
+
 function addHitToUI(hit) {
-  allHits.push(hit);
+  allHits.unshift(hit);
+
+  if (hit.type === 'CRITICAL') critHitsCount++;
+  else if (hit.type === 'HIGH') highHitsCount++;
+  else otherHitsCount++;
+
   document.getElementById('cntHitsBadge').textContent = allHits.length;
+  document.getElementById('cntCritBadge').textContent = critHitsCount;
+  document.getElementById('cntHighBadge').textContent = highHitsCount;
+  document.getElementById('cntOtherBadge').textContent = otherHitsCount;
   document.getElementById('dbHitsCount').textContent = allHits.length;
 
-  const list = document.getElementById('hitsList');
-  const row = document.createElement('div');
-  row.className = 'hit-row';
-
-  row.innerHTML = `
-    <div class="hit-time">${hit.time}</div>
-    <div class="hit-data" title="${esc(hit.url)}">${esc(hit.url)}</div>
-    <div class="hit-ep" title="${esc(hit.ep)}">${esc(hit.ep)}</div>
-    <div class="hit-type type-${hit.type}">${hit.type}</div>
-    <div class="hit-cap" title="${esc(hit.capture)}">${esc(hit.capture)}</div>
-  `;
-  list.insertBefore(row, list.firstChild);
+  if (currentHitsFilter === 'ALL' ||
+     (currentHitsFilter === 'CRITICAL' && hit.type === 'CRITICAL') ||
+     (currentHitsFilter === 'HIGH' && hit.type === 'HIGH') ||
+     (currentHitsFilter === 'OTHER' && hit.type !== 'CRITICAL' && hit.type !== 'HIGH')) {
+    const list = document.getElementById('hitsList');
+    const row = document.createElement('div');
+    row.className = 'hit-row';
+    row.innerHTML = `
+      <div class="hit-time">${hit.time}</div>
+      <div class="hit-data" title="${esc(hit.url)}">${esc(hit.url)}</div>
+      <div class="hit-ep" title="${esc(hit.ep)}">${esc(hit.ep)}</div>
+      <div class="hit-type type-${hit.type}">${hit.type}</div>
+      <div class="hit-cap" title="${esc(hit.capture)}">${esc(hit.capture)}</div>
+    `;
+    list.insertBefore(row, list.firstChild);
+  }
 
   renderHitsDBTable();
 }
@@ -751,8 +826,15 @@ async function startScan() {
   document.getElementById('hitsList').innerHTML = '';
   document.getElementById('termLog').innerHTML = '';
   allHits = [];
+  critHitsCount = 0;
+  highHitsCount = 0;
+  otherHitsCount = 0;
   document.getElementById('cntHitsBadge').textContent = '0';
+  document.getElementById('cntCritBadge').textContent = '0';
+  document.getElementById('cntHighBadge').textContent = '0';
+  document.getElementById('cntOtherBadge').textContent = '0';
   document.getElementById('dbHitsCount').textContent = '0';
+  filterHitsView('ALL');
 
   addLog('sys', `Lancement du scan : ${storedUrls.length} URLs, ${topEpVal} endpoints par URL, ${botsVal} bots. Profil: ${browserVal.toUpperCase()}`);
 
@@ -841,11 +923,15 @@ function handleServerEvent(evt) {
 
       document.getElementById('stTotal').textContent = d.total;
       document.getElementById('stHitsVal').textContent = d.hits;
-      document.getElementById('stCustomVal').textContent = d.custom;
+      if (document.getElementById('stCritVal')) document.getElementById('stCritVal').textContent = d.critical || 0;
+      if (document.getElementById('stHighVal')) document.getElementById('stHighVal').textContent = d.high || 0;
+      if (document.getElementById('stMedVal')) document.getElementById('stMedVal').textContent = (d.medium || 0) + (d.low || 0);
       document.getElementById('stBadVal').textContent = d.bad;
-      document.getElementById('stRetriesVal').textContent = d.retries;
       document.getElementById('stToCheckVal').textContent = d.to_check;
 
+      document.getElementById('stTotalUrls').textContent = d.total_urls;
+      if (document.getElementById('stAliveUrls')) document.getElementById('stAliveUrls').textContent = d.alive_urls || 0;
+      if (document.getElementById('stErrorsVal')) document.getElementById('stErrorsVal').textContent = d.errors || 0;
       document.getElementById('stCPM').textContent = d.cpm;
       document.getElementById('stElapsed').textContent = d.elapsed + 's';
       document.getElementById('stBotsUsage').textContent = d.active_bots + ' / ' + d.total_bots;
