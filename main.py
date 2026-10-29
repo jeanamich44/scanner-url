@@ -41,6 +41,8 @@ class BatchRequest(BaseModel):
     timeout: Optional[float] = 5.0
     top_endpoints: Optional[int] = 100
     bots: Optional[int] = 10
+    url_bots: Optional[int] = 10
+    endpoint_bots: Optional[int] = 2
     use_bypass: Optional[bool] = True
     use_mutations: Optional[bool] = True
     browser: Optional[str] = "chrome"
@@ -70,6 +72,8 @@ def get_defaults():
     return {
         "endpoints_count": len(eps),
         "default_bots": 10,
+        "default_url_bots": 10,
+        "default_ep_bots": 2,
         "default_timeout": 5.0,
         "default_top_endpoints": 100,
         "default_browser": "chrome"
@@ -106,7 +110,9 @@ async def batch_scan(payload: BatchRequest):
     if not all_endpoints:
         raise HTTPException(500, "Impossible de charger endpoints.json")
 
-    concurrency = max(1, min(payload.bots or 10, 100))
+    url_concurrency = max(1, min(payload.url_bots or payload.bots or 10, 50))
+    ep_concurrency = max(1, min(payload.endpoint_bots or 2, 20))
+    total_concurrency = url_concurrency * ep_concurrency
     timeout = max(1.0, min(payload.timeout or 5.0, 30.0))
     use_bypass = payload.use_bypass if payload.use_bypass is not None else True
     use_mutations = payload.use_mutations if payload.use_mutations is not None else True
@@ -140,10 +146,9 @@ async def batch_scan(payload: BatchRequest):
         total_ep = len(all_endpoints)
         total_tasks = total_urls * total_ep
 
-        task_queue: asyncio.Queue = asyncio.Queue()
+        url_queue: asyncio.Queue = asyncio.Queue()
         for u in targets:
-            for ep in all_endpoints:
-                task_queue.put_nowait((u, ep))
+            url_queue.put_nowait(u)
 
         start_time = time.time()
         alive_targets = set()
@@ -165,12 +170,14 @@ async def batch_scan(payload: BatchRequest):
             "total_urls": total_urls,
             "total_ep": total_ep,
             "total_tasks": total_tasks,
-            "bots": concurrency,
+            "url_bots": url_concurrency,
+            "ep_bots": ep_concurrency,
+            "bots": url_concurrency,
         })
 
         push("log", {
             "cls": "sys",
-            "msg": f"Runner initialisé avec succès : {total_urls} URLs, {total_ep} endpoints ({total_tasks} vérifications), {concurrency} bots. Profil: {browser_choice.upper()} | Proxys: {proxy_mgr.count()} actifs."
+            "msg": f"Runner initialisé avec succès : {total_urls} URLs, {total_ep} endpoints ({total_tasks} vérifications). {url_concurrency} Bots URL × {ep_concurrency} Bots Endpoints ({total_concurrency} flux max). Profil: {browser_choice.upper()} | Proxys: {proxy_mgr.count()} actifs."
         })
 
         last_stats_emit = 0.0
@@ -198,7 +205,8 @@ async def batch_scan(payload: BatchRequest):
                 "elapsed": elapsed,
                 "time_left": time_left,
                 "active_bots": g["active_bots"],
-                "total_bots": concurrency,
+                "total_bots": url_concurrency,
+                "endpoint_bots": ep_concurrency,
                 "critical": g["critical"],
                 "high": g["high"],
                 "medium": g["medium"],
@@ -208,106 +216,121 @@ async def batch_scan(payload: BatchRequest):
                 "alive_urls": len(alive_targets),
             })
 
-        async def bot_worker(wid: int):
+        async def url_worker(wid: int):
             impersonate_val, base_headers = get_browser_profile(browser_choice)
-            bot_proxy = proxy_mgr.get_proxy() if proxy_mgr.has_proxies() else None
-            proxy_arg = {"proxy": bot_proxy} if bot_proxy else {}
+            worker_proxy = proxy_mgr.get_proxy() if proxy_mgr.has_proxies() else None
+            proxy_arg = {"proxy": worker_proxy} if worker_proxy else {}
 
             async with AsyncSession(impersonate=impersonate_val, **proxy_arg) as session:
                 while not JOBS[jid].get("cancel"):
                     try:
-                        u, ep = task_queue.get_nowait()
+                        u = url_queue.get_nowait()
                     except asyncio.QueueEmpty:
                         break
 
                     g["active_bots"] += 1
-                    ep_path = ep["endpoint"]
-                    score = ep.get("score", 0)
-
                     push("bot", {
                         "id": wid,
                         "url": u,
-                        "ep": ep_path,
-                        "st": "<<< PROCESSING BLOCK: REQUEST (TRY) >>>",
+                        "ep": f"Initialisation ({ep_concurrency} flux)...",
+                        "st": "<<< PROCESSING URL >>>",
                     })
 
-                    try:
-                        r = await probe_fast(
-                            session=session,
-                            base_url=u,
-                            endpoint=ep_path,
-                            score=score,
-                            timeout=timeout,
-                            use_bypass=use_bypass,
-                            use_mutations=use_mutations,
-                            headers=base_headers,
-                        )
-                    except Exception:
-                        r = {
-                            "status": 0,
-                            "severity": "none",
-                            "accessible": False,
-                            "content_length": 0,
-                            "response_time_ms": 0,
-                            "sensitive_data": [],
-                        }
+                    sem = asyncio.Semaphore(ep_concurrency)
 
-                    g["done"] += 1
-                    g["checks_ts"].append(time.time())
+                    async def scan_single_ep(ep: Dict[str, Any]):
+                        async with sem:
+                            if JOBS[jid].get("cancel"):
+                                return
 
-                    sev = r.get("severity", "none")
-                    status_code = r.get("status")
+                            ep_path = ep["endpoint"]
+                            score = ep.get("score", 0)
 
-                    if not status_code:
-                        g["errors"] += 1
-                    else:
-                        alive_targets.add(u)
+                            push("bot", {
+                                "id": wid,
+                                "url": u,
+                                "ep": ep_path,
+                                "st": f"<<< REQ ({ep_concurrency} ep/url) >>>",
+                            })
 
-                    if r.get("accessible"):
-                        g["hits"] += 1
-                        if sev in g:
-                            g[sev] += 1
+                            try:
+                                r = await probe_fast(
+                                    session=session,
+                                    base_url=u,
+                                    endpoint=ep_path,
+                                    score=score,
+                                    timeout=timeout,
+                                    use_bypass=use_bypass,
+                                    use_mutations=use_mutations,
+                                    headers=base_headers,
+                                )
+                            except Exception:
+                                r = {
+                                    "status": 0,
+                                    "severity": "none",
+                                    "accessible": False,
+                                    "content_length": 0,
+                                    "response_time_ms": 0,
+                                    "sensitive_data": [],
+                                }
 
-                        hit_obj = {
-                            "id": g["hits"],
-                            "time": datetime.now().strftime("%H:%M:%S"),
-                            "bot": wid + 1,
-                            "url": u,
-                            "ep": ep_path,
-                            "status": status_code,
-                            "type": sev.upper(),
-                            "size": r.get("content_length", 0),
-                            "ms": r.get("response_time_ms", 0),
-                            "capture": ", ".join(r.get("sensitive_data", [])) or f"{status_code} OK",
-                        }
-                        JOBS[jid]["hits"].append(hit_obj)
-                        push("hit", hit_obj)
-                        push("bot", {
-                            "id": wid,
-                            "url": u,
-                            "ep": ep_path,
-                            "st": f"<<< SUCCESS: [{status_code}] HIT ({sev.upper()}) >>>",
-                        })
-                        push("log", {
-                            "cls": "hit",
-                            "msg": f"[HIT] Bot {wid+1} : {u}{ep_path} \u2192 {status_code} [{sev.upper()}] ({r.get('content_length')}b)"
-                        })
-                    else:
-                        if status_code == 404:
-                            g["bad"] += 1
-                        push("bot", {
-                            "id": wid,
-                            "url": u,
-                            "ep": ep_path,
-                            "st": f"<<< FAIL: [{status_code or 'ERR'}] MISS >>>",
-                        })
+                            g["done"] += 1
+                            g["checks_ts"].append(time.time())
 
+                            sev = r.get("severity", "none")
+                            status_code = r.get("status")
+
+                            if not status_code:
+                                g["errors"] += 1
+                            else:
+                                alive_targets.add(u)
+
+                            if r.get("accessible"):
+                                g["hits"] += 1
+                                if sev in g:
+                                    g[sev] += 1
+
+                                hit_obj = {
+                                    "id": g["hits"],
+                                    "time": datetime.now().strftime("%H:%M:%S"),
+                                    "bot": wid + 1,
+                                    "url": u,
+                                    "ep": ep_path,
+                                    "status": status_code,
+                                    "type": sev.upper(),
+                                    "size": r.get("content_length", 0),
+                                    "ms": r.get("response_time_ms", 0),
+                                    "capture": ", ".join(r.get("sensitive_data", [])) or f"{status_code} OK",
+                                }
+                                JOBS[jid]["hits"].append(hit_obj)
+                                push("hit", hit_obj)
+                                push("bot", {
+                                    "id": wid,
+                                    "url": u,
+                                    "ep": ep_path,
+                                    "st": f"<<< SUCCESS: [{status_code}] HIT ({sev.upper()}) >>>",
+                                })
+                                push("log", {
+                                    "cls": "hit",
+                                    "msg": f"[HIT] Bot URL {wid+1} : {u}{ep_path} \u2192 {status_code} [{sev.upper()}] ({r.get('content_length')}b)"
+                                })
+                            else:
+                                if status_code == 404:
+                                    g["bad"] += 1
+                                push("bot", {
+                                    "id": wid,
+                                    "url": u,
+                                    "ep": ep_path,
+                                    "st": f"<<< FAIL: [{status_code or 'ERR'}] MISS >>>",
+                                })
+
+                            now_tick = time.time()
+                            if now_tick - last_stats_emit > 0.08:
+                                emit_stats_now()
+
+                    await asyncio.gather(*(scan_single_ep(ep) for ep in all_endpoints))
+                    url_queue.task_done()
                     g["active_bots"] = max(0, g["active_bots"] - 1)
-                    task_queue.task_done()
-
-                    now_tick = time.time()
-                    if now_tick - last_stats_emit > 0.08:
-                        emit_stats_now()
 
             push("bot", {
                 "id": wid,
@@ -316,7 +339,7 @@ async def batch_scan(payload: BatchRequest):
                 "st": "<<< IDLE >>>",
             })
 
-        workers = [asyncio.create_task(bot_worker(i)) for i in range(concurrency)]
+        workers = [asyncio.create_task(url_worker(i)) for i in range(url_concurrency)]
         await asyncio.gather(*workers)
 
         emit_stats_now()
