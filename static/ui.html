@@ -596,6 +596,7 @@ body{
         <div class="cfg-row">
           <div>Select CFG: <span class="cfg-badge" id="lblCfgName">Endpoints.json (880)</span></div>
           <div>Select List: <span class="cfg-badge" id="lblListName">urls.txt (0 URLs)</span></div>
+          <div>Total Requêtes: <span class="cfg-badge" id="lblTotalCalculated" style="color:var(--cyan);font-weight:700">0 (0 URL &times; 880 Ep)</span></div>
         </div>
         <div class="term-log" id="termLog">
           <div class="log-line sys">Runner initialized successfully!</div>
@@ -742,13 +743,14 @@ body{
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
         <div>
           <label style="color:var(--tx-dim);display:block;margin-bottom:4px">Endpoints à tester</label>
-          <select id="selTopEndpoints" style="width:100%;background:#0d0d10;color:#fff;border:1px solid var(--brd);padding:6px;border-radius:2px">
+          <select id="selTopEndpoints" onchange="updateVolumeCalculation()" style="width:100%;background:#0d0d10;color:#fff;border:1px solid var(--brd);padding:6px;border-radius:2px">
             <option value="50">Top 50 les plus critiques</option>
-            <option value="100" selected>Top 100 les plus fréquents</option>
+            <option value="100">Top 100 les plus fréquents</option>
             <option value="200">Top 200</option>
             <option value="500">Top 500</option>
-            <option value="880">Tous les 880 endpoints</option>
+            <option value="880" selected>Tous les 880 endpoints</option>
           </select>
+          <div id="cfgVolumeHint" style="margin-top:4px;font-size:10px;color:var(--cyan);font-family:Consolas,monospace">Volume prévu : 0 requête</div>
         </div>
         <div>
           <label style="color:var(--tx-dim);display:block;margin-bottom:4px">Timeout par requête (sec)</label>
@@ -870,6 +872,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateEngineBadge();
   initSplitters();
   loadInitialHits();
+  updateVolumeCalculation();
   if (window.location.pathname === '/hits' || window.location.hash === '#hitsdb') {
     switchNav('hitsdb');
   }
@@ -1102,7 +1105,54 @@ function updateEngineBadge() {
 function updateUrlsCount() {
   const text = document.getElementById('taUrls').value.trim();
   const count = text ? text.split('\n').filter(l => l.trim()).length : 0;
-  document.getElementById('txtUrlsCount').textContent = count + ' URLs détectées';
+  const topEp = parseInt(document.getElementById('selTopEndpoints') ? document.getElementById('selTopEndpoints').value : 880) || 880;
+  const total = count * topEp;
+  document.getElementById('txtUrlsCount').textContent = count > 0 
+    ? `${count} URLs détectées • ${total.toLocaleString('fr-FR')} requêtes prévues (${topEp} ep/u)` 
+    : '0 URLs détectées';
+}
+
+function updateVolumeCalculation() {
+  const urlCount = storedUrls.length;
+  const sel = document.getElementById('selTopEndpoints');
+  const topEp = parseInt(sel ? sel.value : 880) || 880;
+  const total = urlCount * topEp;
+
+  const badge = document.getElementById('lblTotalCalculated');
+  if (badge) {
+    if (urlCount > 0) {
+      badge.textContent = `${total.toLocaleString('fr-FR')} (${urlCount} URLs × ${topEp} Ep)`;
+      badge.style.color = 'var(--cyan)';
+    } else {
+      badge.textContent = `0 (0 URL × ${topEp} Ep)`;
+      badge.style.color = 'var(--tx-dim)';
+    }
+  }
+
+  const lblCfg = document.getElementById('lblCfgName');
+  if (lblCfg) {
+    lblCfg.textContent = `Endpoints.json (${topEp})`;
+  }
+
+  const hint = document.getElementById('cfgVolumeHint');
+  if (hint) {
+    hint.textContent = `Volume prévu : ${total.toLocaleString('fr-FR')} requêtes (${urlCount} URLs × ${topEp} Ep)`;
+  }
+
+  if (!isRunning) {
+    if (document.getElementById('stTotal')) {
+      document.getElementById('stTotal').textContent = total.toLocaleString('fr-FR');
+    }
+    if (document.getElementById('stToCheckVal')) {
+      document.getElementById('stToCheckVal').textContent = total.toLocaleString('fr-FR');
+    }
+    if (document.getElementById('stTotalUrls')) {
+      document.getElementById('stTotalUrls').textContent = urlCount;
+    }
+    if (document.getElementById('lblProg')) {
+      document.getElementById('lblProg').textContent = `Prog: 0 / ${total.toLocaleString('fr-FR')} (0%)`;
+    }
+  }
 }
 
 function openModal(id) {
@@ -1140,7 +1190,10 @@ function saveUrls() {
   document.getElementById('lblListName').textContent = 'urls.txt (' + storedUrls.length + ' URLs)';
   document.getElementById('stTotalUrls').textContent = storedUrls.length;
   closeModal('wordlists');
-  addLog('sys', 'Wordlist chargée : ' + storedUrls.length + ' URLs prêtes pour analyse.');
+  updateVolumeCalculation();
+  const topEp = parseInt(document.getElementById('selTopEndpoints') ? document.getElementById('selTopEndpoints').value : 880) || 880;
+  const total = storedUrls.length * topEp;
+  addLog('sys', 'Wordlist chargée : ' + storedUrls.length + ' URLs prêtes pour analyse (' + total.toLocaleString('fr-FR') + ' requêtes prévues).');
 }
 
 function updateTotalBotsLabel() {
@@ -1737,9 +1790,13 @@ function handleServerEvent(evt) {
 
   switch (t) {
     case 'init':
-      document.getElementById('stTotal').textContent = d.total_tasks;
+      document.getElementById('stTotal').textContent = d.total_tasks.toLocaleString('fr-FR');
       document.getElementById('stTotalUrls').textContent = d.total_urls;
       document.getElementById('lblCfgName').textContent = 'Endpoints.json (' + d.total_ep + ')';
+      const calcBadge = document.getElementById('lblTotalCalculated');
+      if (calcBadge) {
+        calcBadge.textContent = `${d.total_tasks.toLocaleString('fr-FR')} (${d.total_urls} URLs × ${d.total_ep} Ep)`;
+      }
       break;
 
     case 'bot':
@@ -1830,6 +1887,7 @@ function finishRun(statusLabel) {
   }
   const eb = parseInt(document.getElementById('rngEpBots') ? document.getElementById('rngEpBots').value : 2) || 2;
   document.getElementById('stBotsUsage').textContent = `0 / ${activeBotsCount} (${eb} ep/u)`;
+  updateVolumeCalculation();
   showToast(statusLabel);
 }
 
