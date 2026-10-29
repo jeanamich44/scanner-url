@@ -1,0 +1,3531 @@
+{
+  "metadata": {
+    "total_endpoints": 880,
+    "total_hits": 11316,
+    "max_score": 386,
+    "min_score": 1,
+    "generated_at": "2026-10-29T16:46:32.589Z"
+  },
+  "endpoints": [
+    {
+      "endpoint": "/.git/config",
+      "score": 386
+    },
+    {
+      "endpoint": "/.env",
+      "score": 373
+    },
+    {
+      "endpoint": "/wp-admin/install.php",
+      "score": 330
+    },
+    {
+      "endpoint": "/.env.local",
+      "score": 172
+    },
+    {
+      "endpoint": "/.env.production",
+      "score": 161
+    },
+    {
+      "endpoint": "/.env.backup",
+      "score": 151
+    },
+    {
+      "endpoint": "/.env.old",
+      "score": 145
+    },
+    {
+      "endpoint": "/api/.env",
+      "score": 140
+    },
+    {
+      "endpoint": "/.env.bak",
+      "score": 139
+    },
+    {
+      "endpoint": "/.env.save",
+      "score": 120
+    },
+    {
+      "endpoint": "/backend/.env",
+      "score": 117
+    },
+    {
+      "endpoint": "/.env.prod",
+      "score": 115
+    },
+    {
+      "endpoint": "/.aws/credentials",
+      "score": 114
+    },
+    {
+      "endpoint": "/.git/HEAD",
+      "score": 113
+    },
+    {
+      "endpoint": "/app/.env",
+      "score": 103
+    },
+    {
+      "endpoint": "/.env.dev",
+      "score": 102
+    },
+    {
+      "endpoint": "/.env.development",
+      "score": 94
+    },
+    {
+      "endpoint": "/config/.env",
+      "score": 88
+    },
+    {
+      "endpoint": "/.env.test",
+      "score": 86
+    },
+    {
+      "endpoint": "/.env.staging",
+      "score": 84
+    },
+    {
+      "endpoint": "/.env.example",
+      "score": 83
+    },
+    {
+      "endpoint": "/public/.env",
+      "score": 76
+    },
+    {
+      "endpoint": "/.aws/config",
+      "score": 75
+    },
+    {
+      "endpoint": "/laravel/.env",
+      "score": 74
+    },
+    {
+      "endpoint": "/src/.env",
+      "score": 68
+    },
+    {
+      "endpoint": "/application/.env",
+      "score": 65
+    },
+    {
+      "endpoint": "/.docker/config.json",
+      "score": 63
+    },
+    {
+      "endpoint": "/.env.swp",
+      "score": 63
+    },
+    {
+      "endpoint": "/.env.dist",
+      "score": 62
+    },
+    {
+      "endpoint": "/admin/.env",
+      "score": 61
+    },
+    {
+      "endpoint": "/.env.live",
+      "score": 61
+    },
+    {
+      "endpoint": "/.env.docker",
+      "score": 61
+    },
+    {
+      "endpoint": "/frontend/.env",
+      "score": 59
+    },
+    {
+      "endpoint": "/web/.env",
+      "score": 57
+    },
+    {
+      "endpoint": "/cms/.env",
+      "score": 56
+    },
+    {
+      "endpoint": "/server/.env",
+      "score": 56
+    },
+    {
+      "endpoint": "/.env.sample",
+      "score": 56
+    },
+    {
+      "endpoint": "/core/.env",
+      "score": 53
+    },
+    {
+      "endpoint": "/.git-credentials",
+      "score": 52
+    },
+    {
+      "endpoint": "/v1/.env",
+      "score": 52
+    },
+    {
+      "endpoint": "/.env~",
+      "score": 52
+    },
+    {
+      "endpoint": "/config.php",
+      "score": 50
+    },
+    {
+      "endpoint": "/staging/.env",
+      "score": 50
+    },
+    {
+      "endpoint": "/.env.stage",
+      "score": 50
+    },
+    {
+      "endpoint": "/backup/.env",
+      "score": 49
+    },
+    {
+      "endpoint": "/dev/.env",
+      "score": 49
+    },
+    {
+      "endpoint": "/old/.env",
+      "score": 49
+    },
+    {
+      "endpoint": "/v2/.env",
+      "score": 46
+    },
+    {
+      "endpoint": "/production/.env",
+      "score": 45
+    },
+    {
+      "endpoint": "/.gitlab-ci.yml",
+      "score": 43
+    },
+    {
+      "endpoint": "/client/.env",
+      "score": 42
+    },
+    {
+      "endpoint": "/.env.php",
+      "score": 41
+    },
+    {
+      "endpoint": "/apps/.env",
+      "score": 41
+    },
+    {
+      "endpoint": "/test/.env",
+      "score": 39
+    },
+    {
+      "endpoint": "/.github/workflows/deploy.yml",
+      "score": 38
+    },
+    {
+      "endpoint": "/wp/.env",
+      "score": 36
+    },
+    {
+      "endpoint": "/.env.aws",
+      "score": 35
+    },
+    {
+      "endpoint": "/docker/.env",
+      "score": 35
+    },
+    {
+      "endpoint": "/.env.txt",
+      "score": 35
+    },
+    {
+      "endpoint": "/public_html/.env",
+      "score": 35
+    },
+    {
+      "endpoint": "/config.env",
+      "score": 34
+    },
+    {
+      "endpoint": "/shop/.env",
+      "score": 34
+    },
+    {
+      "endpoint": "/crm/.env",
+      "score": 34
+    },
+    {
+      "endpoint": "/private/.env",
+      "score": 33
+    },
+    {
+      "endpoint": "/.env.testing",
+      "score": 32
+    },
+    {
+      "endpoint": "/.git/index",
+      "score": 32
+    },
+    {
+      "endpoint": "/site/.env",
+      "score": 32
+    },
+    {
+      "endpoint": "/prod/.env",
+      "score": 32
+    },
+    {
+      "endpoint": "/new/.env",
+      "score": 31
+    },
+    {
+      "endpoint": "/sendgrid.env",
+      "score": 31
+    },
+    {
+      "endpoint": "/deploy/.env",
+      "score": 31
+    },
+    {
+      "endpoint": "/storage/.env",
+      "score": 31
+    },
+    {
+      "endpoint": "/.docker/.env",
+      "score": 30
+    },
+    {
+      "endpoint": "/.git/logs/HEAD",
+      "score": 30
+    },
+    {
+      "endpoint": "/@fs/.env",
+      "score": 30
+    },
+    {
+      "endpoint": "/shared/.env",
+      "score": 30
+    },
+    {
+      "endpoint": "/vendor/.env",
+      "score": 30
+    },
+    {
+      "endpoint": "/administrator/.env",
+      "score": 30
+    },
+    {
+      "endpoint": "/portal/.env",
+      "score": 29
+    },
+    {
+      "endpoint": "/build/.env",
+      "score": 28
+    },
+    {
+      "endpoint": "/current/.env",
+      "score": 28
+    },
+    {
+      "endpoint": "/www/.env",
+      "score": 28
+    },
+    {
+      "endpoint": "/service/.env",
+      "score": 28
+    },
+    {
+      "endpoint": "/wp-admin/admin-ajax.php",
+      "score": 28
+    },
+    {
+      "endpoint": "/.env.development.local",
+      "score": 27
+    },
+    {
+      "endpoint": "/project/.env",
+      "score": 27
+    },
+    {
+      "endpoint": "/assets/.env",
+      "score": 27
+    },
+    {
+      "endpoint": "/dashboard/.env",
+      "score": 27
+    },
+    {
+      "endpoint": "/var/www/html/.env",
+      "score": 27
+    },
+    {
+      "endpoint": "/html/.env",
+      "score": 27
+    },
+    {
+      "endpoint": "/mail/.env",
+      "score": 27
+    },
+    {
+      "endpoint": "/.env.production.local",
+      "score": 26
+    },
+    {
+      "endpoint": "/v3/.env",
+      "score": 26
+    },
+    {
+      "endpoint": "/erp/.env",
+      "score": 26
+    },
+    {
+      "endpoint": "/node/.env",
+      "score": 26
+    },
+    {
+      "endpoint": "/.vscode/sftp.json",
+      "score": 25
+    },
+    {
+      "endpoint": "/scripts/.env",
+      "score": 25
+    },
+    {
+      "endpoint": "/internal/.env",
+      "score": 25
+    },
+    {
+      "endpoint": "/.env.preprod",
+      "score": 25
+    },
+    {
+      "endpoint": "/store/.env",
+      "score": 25
+    },
+    {
+      "endpoint": "/api/v1/.env",
+      "score": 25
+    },
+    {
+      "endpoint": "/.docker/laravel/app/.env",
+      "score": 25
+    },
+    {
+      "endpoint": "/tmp/.env",
+      "score": 25
+    },
+    {
+      "endpoint": "/dist/.env",
+      "score": 25
+    },
+    {
+      "endpoint": "/database/.env",
+      "score": 25
+    },
+    {
+      "endpoint": "/resources/.env",
+      "score": 25
+    },
+    {
+      "endpoint": "/local/.env",
+      "score": 25
+    },
+    {
+      "endpoint": "/mailer/.env",
+      "score": 25
+    },
+    {
+      "endpoint": "/smtp/.env",
+      "score": 25
+    },
+    {
+      "endpoint": "/sendgrid/.env",
+      "score": 25
+    },
+    {
+      "endpoint": "/.env.anthropic",
+      "score": 24
+    },
+    {
+      "endpoint": "/.gitmodules",
+      "score": 24
+    },
+    {
+      "endpoint": "/lib/.env",
+      "score": 24
+    },
+    {
+      "endpoint": "/panel/.env",
+      "score": 24
+    },
+    {
+      "endpoint": "/temp/.env",
+      "score": 24
+    },
+    {
+      "endpoint": "/media/.env",
+      "score": 24
+    },
+    {
+      "endpoint": "/cron/.env",
+      "score": 24
+    },
+    {
+      "endpoint": "/email/.env",
+      "score": 24
+    },
+    {
+      "endpoint": "/development/.env",
+      "score": 24
+    },
+    {
+      "endpoint": "/wp-admin",
+      "score": 23
+    },
+    {
+      "endpoint": "/back/.env",
+      "score": 23
+    },
+    {
+      "endpoint": "/api/v2/.env",
+      "score": 23
+    },
+    {
+      "endpoint": "/aws.env",
+      "score": 23
+    },
+    {
+      "endpoint": "/var/www/.env",
+      "score": 23
+    },
+    {
+      "endpoint": "/htdocs/.env",
+      "score": 23
+    },
+    {
+      "endpoint": "/.env-sample",
+      "score": 22
+    },
+    {
+      "endpoint": "/.env.ci",
+      "score": 22
+    },
+    {
+      "endpoint": "/live/.env",
+      "score": 22
+    },
+    {
+      "endpoint": "/symfony/.env",
+      "score": 22
+    },
+    {
+      "endpoint": "/uploads/.env",
+      "score": 22
+    },
+    {
+      "endpoint": "/newsletter/.env",
+      "score": 22
+    },
+    {
+      "endpoint": "/aws/.env",
+      "score": 22
+    },
+    {
+      "endpoint": "/beta/.env",
+      "score": 22
+    },
+    {
+      "endpoint": "/.git/logs/refs/heads/main",
+      "score": 21
+    },
+    {
+      "endpoint": "/cache/.env",
+      "score": 21
+    },
+    {
+      "endpoint": "/.env.openai",
+      "score": 21
+    },
+    {
+      "endpoint": "/opt/.env",
+      "score": 21
+    },
+    {
+      "endpoint": "/drupal/.env",
+      "score": 21
+    },
+    {
+      "endpoint": "/joomla/.env",
+      "score": 21
+    },
+    {
+      "endpoint": "/magento/.env",
+      "score": 21
+    },
+    {
+      "endpoint": "/shopify/.env",
+      "score": 21
+    },
+    {
+      "endpoint": "/prestashop/.env",
+      "score": 21
+    },
+    {
+      "endpoint": "/graphql/.env",
+      "score": 21
+    },
+    {
+      "endpoint": "/gateway/.env",
+      "score": 21
+    },
+    {
+      "endpoint": "/microservice/.env",
+      "score": 21
+    },
+    {
+      "endpoint": "/tools/.env",
+      "score": 21
+    },
+    {
+      "endpoint": "/saas/.env",
+      "score": 21
+    },
+    {
+      "endpoint": "/express/.env",
+      "score": 21
+    },
+    {
+      "endpoint": "/next/.env",
+      "score": 21
+    },
+    {
+      "endpoint": "/lab/.env",
+      "score": 21
+    },
+    {
+      "endpoint": "/cronlab/.env",
+      "score": 21
+    },
+    {
+      "endpoint": "/en/.env",
+      "score": 21
+    },
+    {
+      "endpoint": "/exapi/.env",
+      "score": 21
+    },
+    {
+      "endpoint": "/mailing/.env",
+      "score": 21
+    },
+    {
+      "endpoint": "/sparkpost/.env",
+      "score": 21
+    },
+    {
+      "endpoint": "/mailgun/.env",
+      "score": 21
+    },
+    {
+      "endpoint": "/mandrill/.env",
+      "score": 21
+    },
+    {
+      "endpoint": "/mailjet/.env",
+      "score": 21
+    },
+    {
+      "endpoint": "/brevo/.env",
+      "score": 21
+    },
+    {
+      "endpoint": "/transactional/.env",
+      "score": 21
+    },
+    {
+      "endpoint": "/bulk/.env",
+      "score": 21
+    },
+    {
+      "endpoint": "/qa/.env",
+      "score": 21
+    },
+    {
+      "endpoint": "/.aws/credentials.bak",
+      "score": 20
+    },
+    {
+      "endpoint": "/@fs/src/.env",
+      "score": 20
+    },
+    {
+      "endpoint": "/.env.remote",
+      "score": 20
+    },
+    {
+      "endpoint": "/.env.yaml",
+      "score": 20
+    },
+    {
+      "endpoint": "/.env.yml",
+      "score": 20
+    },
+    {
+      "endpoint": "/release/.env",
+      "score": 20
+    },
+    {
+      "endpoint": "/releases/.env",
+      "score": 20
+    },
+    {
+      "endpoint": "/rest/.env",
+      "score": 20
+    },
+    {
+      "endpoint": "/nest/.env",
+      "score": 20
+    },
+    {
+      "endpoint": "/notifications/.env",
+      "score": 20
+    },
+    {
+      "endpoint": "/.env-example",
+      "score": 19
+    },
+    {
+      "endpoint": "/.env.uat",
+      "score": 19
+    },
+    {
+      "endpoint": "/.env.json",
+      "score": 19
+    },
+    {
+      "endpoint": "/core/app/.env",
+      "score": 19
+    },
+    {
+      "endpoint": "/backups/.env",
+      "score": 19
+    },
+    {
+      "endpoint": "/sitemaps/.env",
+      "score": 19
+    },
+    {
+      "endpoint": "/sender/.env",
+      "score": 19
+    },
+    {
+      "endpoint": "/campaign/.env",
+      "score": 19
+    },
+    {
+      "endpoint": "/ses/.env",
+      "score": 19
+    },
+    {
+      "endpoint": "/stage/.env",
+      "score": 19
+    },
+    {
+      "endpoint": "/demo/.env",
+      "score": 18
+    },
+    {
+      "endpoint": "/wordpress/.env",
+      "score": 18
+    },
+    {
+      "endpoint": "/nuxt/.env",
+      "score": 18
+    },
+    {
+      "endpoint": "/notify/.env",
+      "score": 18
+    },
+    {
+      "endpoint": "/postmark/.env",
+      "score": 18
+    },
+    {
+      "endpoint": "/config.php.bak",
+      "score": 18
+    },
+    {
+      "endpoint": "/.aws/.env",
+      "score": 17
+    },
+    {
+      "endpoint": "/secrets.env",
+      "score": 17
+    },
+    {
+      "endpoint": "/app/.git/config",
+      "score": 17
+    },
+    {
+      "endpoint": "/.env_copy",
+      "score": 17
+    },
+    {
+      "endpoint": "/psnlink/.env",
+      "score": 17
+    },
+    {
+      "endpoint": "/job/.env",
+      "score": 17
+    },
+    {
+      "endpoint": "/@fs/app/.env",
+      "score": 16
+    },
+    {
+      "endpoint": "/.env1",
+      "score": 16
+    },
+    {
+      "endpoint": "/cakephp/.env",
+      "score": 16
+    },
+    {
+      "endpoint": "/zend/.env",
+      "score": 16
+    },
+    {
+      "endpoint": "/yii/.env",
+      "score": 16
+    },
+    {
+      "endpoint": "/laravel5/.env",
+      "score": 16
+    },
+    {
+      "endpoint": "/api/v3/.env",
+      "score": 16
+    },
+    {
+      "endpoint": "/admin-panel/.env",
+      "score": 16
+    },
+    {
+      "endpoint": "/control-panel/.env",
+      "score": 16
+    },
+    {
+      "endpoint": "/user-panel/.env",
+      "score": 16
+    },
+    {
+      "endpoint": "/vue/.env",
+      "score": 16
+    },
+    {
+      "endpoint": "/angular/.env",
+      "score": 16
+    },
+    {
+      "endpoint": "/svelte/.env",
+      "score": 16
+    },
+    {
+      "endpoint": "/vite/.env",
+      "score": 16
+    },
+    {
+      "endpoint": "/.env.backup1",
+      "score": 16
+    },
+    {
+      "endpoint": "/.env.backup2",
+      "score": 16
+    },
+    {
+      "endpoint": "/azure/.env",
+      "score": 16
+    },
+    {
+      "endpoint": "/gcp/.env",
+      "score": 16
+    },
+    {
+      "endpoint": "/.git/.env",
+      "score": 16
+    },
+    {
+      "endpoint": "/cd/.env",
+      "score": 16
+    },
+    {
+      "endpoint": "/jenkins/.env",
+      "score": 16
+    },
+    {
+      "endpoint": "/actions/.env",
+      "score": 16
+    },
+    {
+      "endpoint": "/buildkite/.env",
+      "score": 16
+    },
+    {
+      "endpoint": "/mysql/.env",
+      "score": 16
+    },
+    {
+      "endpoint": "/rabbitmq/.env",
+      "score": 16
+    },
+    {
+      "endpoint": "/config/app/.env",
+      "score": 16
+    },
+    {
+      "endpoint": "/wp-admin/phpinfo.php",
+      "score": 16
+    },
+    {
+      "endpoint": "/stripe/.env",
+      "score": 16
+    },
+    {
+      "endpoint": "/services/.env",
+      "score": 15
+    },
+    {
+      "endpoint": "/.gitconfig",
+      "score": 15
+    },
+    {
+      "endpoint": "/@fs/proc/self/cwd/.env",
+      "score": 15
+    },
+    {
+      "endpoint": "/.env2",
+      "score": 15
+    },
+    {
+      "endpoint": "/bootstrap/.env",
+      "score": 15
+    },
+    {
+      "endpoint": "/codeigniter/.env",
+      "score": 15
+    },
+    {
+      "endpoint": "/api/dev/.env",
+      "score": 15
+    },
+    {
+      "endpoint": "/api/staging/.env",
+      "score": 15
+    },
+    {
+      "endpoint": "/bin/.env",
+      "score": 15
+    },
+    {
+      "endpoint": "/cloud/.env",
+      "score": 15
+    },
+    {
+      "endpoint": "/k8s/.env",
+      "score": 15
+    },
+    {
+      "endpoint": "/kubernetes/.env",
+      "score": 15
+    },
+    {
+      "endpoint": "/terraform/.env",
+      "score": 15
+    },
+    {
+      "endpoint": "/ansible/.env",
+      "score": 15
+    },
+    {
+      "endpoint": "/ci/.env",
+      "score": 15
+    },
+    {
+      "endpoint": "/gitlab/.env",
+      "score": 15
+    },
+    {
+      "endpoint": "/travis/.env",
+      "score": 15
+    },
+    {
+      "endpoint": "/mongodb/.env",
+      "score": 15
+    },
+    {
+      "endpoint": "/elasticsearch/.env",
+      "score": 15
+    },
+    {
+      "endpoint": "/queue/.env",
+      "score": 15
+    },
+    {
+      "endpoint": "/.git/packed-refs",
+      "score": 14
+    },
+    {
+      "endpoint": "/sbin/.env",
+      "score": 14
+    },
+    {
+      "endpoint": "/github/.env",
+      "score": 14
+    },
+    {
+      "endpoint": "/circleci/.env",
+      "score": 14
+    },
+    {
+      "endpoint": "/postgres/.env",
+      "score": 14
+    },
+    {
+      "endpoint": "/kafka/.env",
+      "score": 14
+    },
+    {
+      "endpoint": "/preview/.env",
+      "score": 14
+    },
+    {
+      "endpoint": "/uat/.env",
+      "score": 14
+    },
+    {
+      "endpoint": "/.github/workflows/main.yml",
+      "score": 14
+    },
+    {
+      "endpoint": "/.env.prod.local",
+      "score": 13
+    },
+    {
+      "endpoint": "/@fs/root/.env",
+      "score": 13
+    },
+    {
+      "endpoint": "/.git/refs/heads/master",
+      "score": 13
+    },
+    {
+      "endpoint": "/react/.env",
+      "score": 13
+    },
+    {
+      "endpoint": "/logs/.env",
+      "score": 13
+    },
+    {
+      "endpoint": "/infrastructure/.env",
+      "score": 13
+    },
+    {
+      "endpoint": "/redis/.env",
+      "score": 13
+    },
+    {
+      "endpoint": "/worker/.env",
+      "score": 13
+    },
+    {
+      "endpoint": "/functions/.env",
+      "score": 13
+    },
+    {
+      "endpoint": "/app/.env.local",
+      "score": 13
+    },
+    {
+      "endpoint": "/.github/.env",
+      "score": 12
+    },
+    {
+      "endpoint": "/.docker/secrets.json",
+      "score": 12
+    },
+    {
+      "endpoint": "/conf/.env",
+      "score": 12
+    },
+    {
+      "endpoint": "/.env.php.bak",
+      "score": 12
+    },
+    {
+      "endpoint": "/env/.env",
+      "score": 11
+    },
+    {
+      "endpoint": "/data/.env",
+      "score": 11
+    },
+    {
+      "endpoint": "/.vscode/launch.json",
+      "score": 11
+    },
+    {
+      "endpoint": "/backend/.git/config",
+      "score": 11
+    },
+    {
+      "endpoint": "/.git/ORIG_HEAD",
+      "score": 11
+    },
+    {
+      "endpoint": "/.env_1",
+      "score": 10
+    },
+    {
+      "endpoint": "/.env.mail",
+      "score": 10
+    },
+    {
+      "endpoint": "/.git/refs/heads/main",
+      "score": 10
+    },
+    {
+      "endpoint": "/.git/description",
+      "score": 10
+    },
+    {
+      "endpoint": "/.env.config",
+      "score": 10
+    },
+    {
+      "endpoint": "/.git/FETCH_HEAD",
+      "score": 10
+    },
+    {
+      "endpoint": "/admin-app/.env",
+      "score": 10
+    },
+    {
+      "endpoint": "/app/.env.production",
+      "score": 10
+    },
+    {
+      "endpoint": "/stripe.env",
+      "score": 10
+    },
+    {
+      "endpoint": "/backend-api/.env",
+      "score": 10
+    },
+    {
+      "endpoint": "/@fs/var/task/.env",
+      "score": 9
+    },
+    {
+      "endpoint": "/@fs/home/ec2-user/.aws/credentials",
+      "score": 9
+    },
+    {
+      "endpoint": "/config/.env.local",
+      "score": 9
+    },
+    {
+      "endpoint": "/.dockercfg",
+      "score": 9
+    },
+    {
+      "endpoint": "/Dockerrun.aws.json",
+      "score": 9
+    },
+    {
+      "endpoint": "/img../.env",
+      "score": 9
+    },
+    {
+      "endpoint": "/admin%2F.env",
+      "score": 9
+    },
+    {
+      "endpoint": "/settings%2F.env",
+      "score": 9
+    },
+    {
+      "endpoint": "/.env.dev.local",
+      "score": 9
+    },
+    {
+      "endpoint": "/.env.staging.local",
+      "score": 9
+    },
+    {
+      "endpoint": "/.envrc",
+      "score": 9
+    },
+    {
+      "endpoint": "/@fs/..%252f..%252f..%252f..%252f..%252froot/.env",
+      "score": 9
+    },
+    {
+      "endpoint": "/wp-admin/css",
+      "score": 9
+    },
+    {
+      "endpoint": "/html/.git/config",
+      "score": 9
+    },
+    {
+      "endpoint": "/.git/config.bak",
+      "score": 9
+    },
+    {
+      "endpoint": "/.env.qa",
+      "score": 9
+    },
+    {
+      "endpoint": "/.git/info/exclude",
+      "score": 9
+    },
+    {
+      "endpoint": "/api-backend/.env",
+      "score": 9
+    },
+    {
+      "endpoint": "/aws/ses/smtp.env",
+      "score": 9
+    },
+    {
+      "endpoint": "/.github/workflows/ci.yml",
+      "score": 9
+    },
+    {
+      "endpoint": "/site/.git/config",
+      "score": 9
+    },
+    {
+      "endpoint": "/.ENV",
+      "score": 9
+    },
+    {
+      "endpoint": "/.vscode/settings.json",
+      "score": 9
+    },
+    {
+      "endpoint": "/.env.tmp",
+      "score": 9
+    },
+    {
+      "endpoint": "/.git/refs/remotes/origin/HEAD",
+      "score": 9
+    },
+    {
+      "endpoint": "/wp-admin/setup-config.php",
+      "score": 8
+    },
+    {
+      "endpoint": "/@fs/root/.aws/credentials",
+      "score": 8
+    },
+    {
+      "endpoint": "/.env_sample",
+      "score": 8
+    },
+    {
+      "endpoint": "/assets../.env",
+      "score": 8
+    },
+    {
+      "endpoint": "/public../.env",
+      "score": 8
+    },
+    {
+      "endpoint": "/dashboard%2F.env",
+      "score": 8
+    },
+    {
+      "endpoint": "/.git-secret",
+      "score": 8
+    },
+    {
+      "endpoint": "/.git",
+      "score": 8
+    },
+    {
+      "endpoint": "/.gitignore",
+      "score": 8
+    },
+    {
+      "endpoint": "/src/.git/config",
+      "score": 8
+    },
+    {
+      "endpoint": "/htdocs/.git/config",
+      "score": 8
+    },
+    {
+      "endpoint": "/config/config.php",
+      "score": 8
+    },
+    {
+      "endpoint": "/@fs/app/.env.local",
+      "score": 7
+    },
+    {
+      "endpoint": "/packages/.env",
+      "score": 7
+    },
+    {
+      "endpoint": "/.env.sendgrid",
+      "score": 7
+    },
+    {
+      "endpoint": "/.env.smtp",
+      "score": 7
+    },
+    {
+      "endpoint": "/supabase/.env",
+      "score": 7
+    },
+    {
+      "endpoint": "/uploads../.env",
+      "score": 7
+    },
+    {
+      "endpoint": "/..../..../..../..../.env",
+      "score": 7
+    },
+    {
+      "endpoint": "/api/uploads/%2e%2e%2f%2e%2e%2f.env",
+      "score": 7
+    },
+    {
+      "endpoint": "/.dockerenv",
+      "score": 7
+    },
+    {
+      "endpoint": "/.git/COMMIT_EDITMSG",
+      "score": 7
+    },
+    {
+      "endpoint": "/@fs/home/ubuntu/.aws/credentials",
+      "score": 7
+    },
+    {
+      "endpoint": "/media../.env",
+      "score": 7
+    },
+    {
+      "endpoint": "/public/.git/config",
+      "score": 7
+    },
+    {
+      "endpoint": "/.git-askpass.sh",
+      "score": 7
+    },
+    {
+      "endpoint": "/.git/objects/info",
+      "score": 7
+    },
+    {
+      "endpoint": "/www/.git/config",
+      "score": 7
+    },
+    {
+      "endpoint": "/bootstrap/cache/config.php",
+      "score": 7
+    },
+    {
+      "endpoint": "/.env.production.bak",
+      "score": 7
+    },
+    {
+      "endpoint": "/.env.project",
+      "score": 7
+    },
+    {
+      "endpoint": "/root/.aws/credentials",
+      "score": 7
+    },
+    {
+      "endpoint": "/@fs/app/.env.production",
+      "score": 6
+    },
+    {
+      "endpoint": "/.env.development::$DATA",
+      "score": 6
+    },
+    {
+      "endpoint": "/.env.production::$DATA",
+      "score": 6
+    },
+    {
+      "endpoint": "/model/.env",
+      "score": 6
+    },
+    {
+      "endpoint": "/var/.env",
+      "score": 6
+    },
+    {
+      "endpoint": "/config/env/aws_credentials.env",
+      "score": 6
+    },
+    {
+      "endpoint": "/application/.env.sample",
+      "score": 6
+    },
+    {
+      "endpoint": "/files../.env",
+      "score": 6
+    },
+    {
+      "endpoint": "/.next/.env",
+      "score": 6
+    },
+    {
+      "endpoint": "/.env.secret",
+      "score": 6
+    },
+    {
+      "endpoint": "/.env.www",
+      "score": 6
+    },
+    {
+      "endpoint": "/node-api/.env",
+      "score": 6
+    },
+    {
+      "endpoint": "/.env.orig",
+      "score": 6
+    },
+    {
+      "endpoint": "/blog/.env",
+      "score": 6
+    },
+    {
+      "endpoint": "/app/config/.env",
+      "score": 6
+    },
+    {
+      "endpoint": "/var/www/.git/config",
+      "score": 6
+    },
+    {
+      "endpoint": "/.dockerignore",
+      "score": 6
+    },
+    {
+      "endpoint": "/.git/hooks/pre-commit",
+      "score": 6
+    },
+    {
+      "endpoint": "/.git/hooks",
+      "score": 6
+    },
+    {
+      "endpoint": "/.git/hooks/post-commit",
+      "score": 6
+    },
+    {
+      "endpoint": "/.git/info",
+      "score": 6
+    },
+    {
+      "endpoint": "/.github",
+      "score": 6
+    },
+    {
+      "endpoint": "/.github/PULL_REQUEST_TEMPLATE.md",
+      "score": 6
+    },
+    {
+      "endpoint": "/.gitlab-ci",
+      "score": 6
+    },
+    {
+      "endpoint": "/APP/.env",
+      "score": 6
+    },
+    {
+      "endpoint": "/BACKEND/.env",
+      "score": 6
+    },
+    {
+      "endpoint": "/Backend/.env",
+      "score": 6
+    },
+    {
+      "endpoint": "/Be/.env",
+      "score": 6
+    },
+    {
+      "endpoint": "/apis/.env",
+      "score": 6
+    },
+    {
+      "endpoint": "/aws.env.json",
+      "score": 6
+    },
+    {
+      "endpoint": "/config/module.config.php",
+      "score": 6
+    },
+    {
+      "endpoint": "/home/*/.git-credentials",
+      "score": 6
+    },
+    {
+      "endpoint": "/fe/.env",
+      "score": 6
+    },
+    {
+      "endpoint": "/product/.env",
+      "score": 6
+    },
+    {
+      "endpoint": "/root/.aws/config",
+      "score": 6
+    },
+    {
+      "endpoint": "/root/.git-credentials",
+      "score": 6
+    },
+    {
+      "endpoint": "/s3/.aws/config",
+      "score": 6
+    },
+    {
+      "endpoint": "/@fs/proc/self/cwd/.env.production",
+      "score": 6
+    },
+    {
+      "endpoint": "/@fs/proc/self/cwd/.env.local",
+      "score": 6
+    },
+    {
+      "endpoint": "/.env.local::$DATA",
+      "score": 5
+    },
+    {
+      "endpoint": "/.env::$DATA",
+      "score": 5
+    },
+    {
+      "endpoint": "/api/data/..%2f..%2f.env",
+      "score": 5
+    },
+    {
+      "endpoint": "/workspace/.env",
+      "score": 5
+    },
+    {
+      "endpoint": "/ai/.env",
+      "score": 5
+    },
+    {
+      "endpoint": "/agent/.env",
+      "score": 5
+    },
+    {
+      "endpoint": "/common/.env",
+      "score": 5
+    },
+    {
+      "endpoint": "/pipeline/.env",
+      "score": 5
+    },
+    {
+      "endpoint": "/utils/.env",
+      "score": 5
+    },
+    {
+      "endpoint": "/prisma/.env",
+      "score": 5
+    },
+    {
+      "endpoint": "/js../.env",
+      "score": 5
+    },
+    {
+      "endpoint": "/css../.env",
+      "score": 5
+    },
+    {
+      "endpoint": "/api/.env/public/.env",
+      "score": 5
+    },
+    {
+      "endpoint": "/api/..;/.env",
+      "score": 5
+    },
+    {
+      "endpoint": "/api%2F.env",
+      "score": 5
+    },
+    {
+      "endpoint": "/.env.supabase",
+      "score": 5
+    },
+    {
+      "endpoint": "/dist../.env",
+      "score": 5
+    },
+    {
+      "endpoint": "/.env.key",
+      "score": 5
+    },
+    {
+      "endpoint": "/config/.env.production",
+      "score": 5
+    },
+    {
+      "endpoint": "/.env.vault",
+      "score": 5
+    },
+    {
+      "endpoint": "/.env.copy",
+      "score": 5
+    },
+    {
+      "endpoint": "/.git/config.old",
+      "score": 5
+    },
+    {
+      "endpoint": "/config.php.old",
+      "score": 5
+    },
+    {
+      "endpoint": "/api/.git/config",
+      "score": 5
+    },
+    {
+      "endpoint": "/server/backend/.env",
+      "score": 5
+    },
+    {
+      "endpoint": "/core/Database/.env",
+      "score": 5
+    },
+    {
+      "endpoint": "/system/.env",
+      "score": 5
+    },
+    {
+      "endpoint": "/.git/logs/refs/remotes/origin/master",
+      "score": 5
+    },
+    {
+      "endpoint": "/.github/stale.yml",
+      "score": 5
+    },
+    {
+      "endpoint": "/.gitlab",
+      "score": 5
+    },
+    {
+      "endpoint": "/ADMIN/.env",
+      "score": 5
+    },
+    {
+      "endpoint": "/nodeweb/.env",
+      "score": 5
+    },
+    {
+      "endpoint": "/.gitlab/issue_templates",
+      "score": 5
+    },
+    {
+      "endpoint": "/.gitlab/merge_request_templates",
+      "score": 5
+    },
+    {
+      "endpoint": "/BE/.env",
+      "score": 5
+    },
+    {
+      "endpoint": "/api-node/.env",
+      "score": 5
+    },
+    {
+      "endpoint": "/develop/.env",
+      "score": 5
+    },
+    {
+      "endpoint": "/marketing/.env",
+      "score": 5
+    },
+    {
+      "endpoint": "/node/api/.env",
+      "score": 5
+    },
+    {
+      "endpoint": "/root/.gitconfig",
+      "score": 5
+    },
+    {
+      "endpoint": "/@fs/home/ec2-user/.aws/config",
+      "score": 5
+    },
+    {
+      "endpoint": "/agents/.env",
+      "score": 4
+    },
+    {
+      "endpoint": "/ml/.env",
+      "score": 4
+    },
+    {
+      "endpoint": "/config/.env.staging",
+      "score": 4
+    },
+    {
+      "endpoint": "/server/.env.production",
+      "score": 4
+    },
+    {
+      "endpoint": "/.env.credentials",
+      "score": 4
+    },
+    {
+      "endpoint": "/images../.env",
+      "score": 4
+    },
+    {
+      "endpoint": "/build../.env",
+      "score": 4
+    },
+    {
+      "endpoint": "/infra/.env",
+      "score": 4
+    },
+    {
+      "endpoint": "/cmd/.env",
+      "score": 4
+    },
+    {
+      "endpoint": "/etc/.env",
+      "score": 4
+    },
+    {
+      "endpoint": "/.env_secret",
+      "score": 4
+    },
+    {
+      "endpoint": "/.env.template",
+      "score": 4
+    },
+    {
+      "endpoint": "/.git/config~",
+      "score": 4
+    },
+    {
+      "endpoint": "/.gitlab-ci/variables.yml",
+      "score": 4
+    },
+    {
+      "endpoint": "/back-end/.env",
+      "score": 4
+    },
+    {
+      "endpoint": "/.git/logs/refs/remotes/origin/main",
+      "score": 4
+    },
+    {
+      "endpoint": "/server/api/.env",
+      "score": 4
+    },
+    {
+      "endpoint": "/front/.env",
+      "score": 4
+    },
+    {
+      "endpoint": "/main/.env",
+      "score": 4
+    },
+    {
+      "endpoint": "/docker/laravel/.env",
+      "score": 4
+    },
+    {
+      "endpoint": "/.docker/laravel/.env",
+      "score": 4
+    },
+    {
+      "endpoint": "/protected/.env",
+      "score": 4
+    },
+    {
+      "endpoint": "/user/.env",
+      "score": 4
+    },
+    {
+      "endpoint": "/.git/objects/info/packs",
+      "score": 4
+    },
+    {
+      "endpoint": "/.git/objects/pack",
+      "score": 4
+    },
+    {
+      "endpoint": "/API/.env",
+      "score": 4
+    },
+    {
+      "endpoint": "/Api/.env",
+      "score": 4
+    },
+    {
+      "endpoint": "/back-api/.env",
+      "score": 4
+    },
+    {
+      "endpoint": "/be/.env",
+      "score": 4
+    },
+    {
+      "endpoint": "/developer/.env",
+      "score": 4
+    },
+    {
+      "endpoint": "/home/*/.gitconfig",
+      "score": 4
+    },
+    {
+      "endpoint": "/market/.env",
+      "score": 4
+    },
+    {
+      "endpoint": "/nodeapi/.env",
+      "score": 4
+    },
+    {
+      "endpoint": "/public-api/.env",
+      "score": 4
+    },
+    {
+      "endpoint": "/s3/.env.bak",
+      "score": 4
+    },
+    {
+      "endpoint": "/stg/.env",
+      "score": 4
+    },
+    {
+      "endpoint": "/srv/.env",
+      "score": 4
+    },
+    {
+      "endpoint": "/@fs/root/.aws/config",
+      "score": 4
+    },
+    {
+      "endpoint": "/@fs/usr/src/app/.env",
+      "score": 4
+    },
+    {
+      "endpoint": "/src/api/.env",
+      "score": 4
+    },
+    {
+      "endpoint": "/.env.prod.bak",
+      "score": 4
+    },
+    {
+      "endpoint": "/.gitattributes",
+      "score": 4
+    },
+    {
+      "endpoint": "/.github/ISSUE_TEMPLATE",
+      "score": 4
+    },
+    {
+      "endpoint": "/.env.1",
+      "score": 3
+    },
+    {
+      "endpoint": "/bot/.env",
+      "score": 3
+    },
+    {
+      "endpoint": "/.env.ses",
+      "score": 3
+    },
+    {
+      "endpoint": "/gemini.env",
+      "score": 3
+    },
+    {
+      "endpoint": "/.env.keys",
+      "score": 3
+    },
+    {
+      "endpoint": "/app/..;/.env",
+      "score": 3
+    },
+    {
+      "endpoint": "/api/orders/..%2f..%2f.env",
+      "score": 3
+    },
+    {
+      "endpoint": "/pkg/.env",
+      "score": 3
+    },
+    {
+      "endpoint": "/llm/.env",
+      "score": 3
+    },
+    {
+      "endpoint": "/auth/.env",
+      "score": 3
+    },
+    {
+      "endpoint": "/docker-compose/.env",
+      "score": 3
+    },
+    {
+      "endpoint": "/wp-admin/js",
+      "score": 3
+    },
+    {
+      "endpoint": "/api/shared/config/config.env",
+      "score": 3
+    },
+    {
+      "endpoint": "/admin/.git/config",
+      "score": 3
+    },
+    {
+      "endpoint": "/backup/.git/HEAD",
+      "score": 3
+    },
+    {
+      "endpoint": "/old/.git/HEAD",
+      "score": 3
+    },
+    {
+      "endpoint": "/.git.bak/config",
+      "score": 3
+    },
+    {
+      "endpoint": "/old/.git/config",
+      "score": 3
+    },
+    {
+      "endpoint": "/html/.git/HEAD",
+      "score": 3
+    },
+    {
+      "endpoint": "/www.git/config",
+      "score": 3
+    },
+    {
+      "endpoint": "/backup/.git/config",
+      "score": 3
+    },
+    {
+      "endpoint": "/node_modules",
+      "score": 3
+    },
+    {
+      "endpoint": "/.git/credentials",
+      "score": 3
+    },
+    {
+      "endpoint": "/.env.secrets",
+      "score": 3
+    },
+    {
+      "endpoint": "/.environment",
+      "score": 3
+    },
+    {
+      "endpoint": "/wp-content/.env",
+      "score": 3
+    },
+    {
+      "endpoint": "/laravel/core/.env",
+      "score": 3
+    },
+    {
+      "endpoint": "/crm/.env.production",
+      "score": 3
+    },
+    {
+      "endpoint": "/openai.env",
+      "score": 3
+    },
+    {
+      "endpoint": "/ses.env",
+      "score": 3
+    },
+    {
+      "endpoint": "/config.php.swp",
+      "score": 3
+    },
+    {
+      "endpoint": "/.github/CODEOWNERS",
+      "score": 3
+    },
+    {
+      "endpoint": "/.github/funding.yml",
+      "score": 3
+    },
+    {
+      "endpoint": "/.github/workflows",
+      "score": 3
+    },
+    {
+      "endpoint": "/home/*/.aws/credentials",
+      "score": 3
+    },
+    {
+      "endpoint": "/node/backend/.env",
+      "score": 3
+    },
+    {
+      "endpoint": "/website/.env",
+      "score": 3
+    },
+    {
+      "endpoint": "/.git/logs/refs/heads/master",
+      "score": 3
+    },
+    {
+      "endpoint": "/s3/bucket.env",
+      "score": 3
+    },
+    {
+      "endpoint": "/wordpress/.git/config",
+      "score": 3
+    },
+    {
+      "endpoint": "/@fs/var/www/html/.aws/credentials",
+      "score": 3
+    },
+    {
+      "endpoint": "/@fs/usr/src/app/.aws/credentials",
+      "score": 3
+    },
+    {
+      "endpoint": "/backend/api/.env",
+      "score": 3
+    },
+    {
+      "endpoint": "/home/ubuntu/.aws/credentials",
+      "score": 3
+    },
+    {
+      "endpoint": "/.env.docker.dev",
+      "score": 3
+    },
+    {
+      "endpoint": "/.hermes/.env",
+      "score": 3
+    },
+    {
+      "endpoint": "/.openclaw/.env",
+      "score": 3
+    },
+    {
+      "endpoint": "/@fs/home/node/.aws/config",
+      "score": 3
+    },
+    {
+      "endpoint": "/settings/.env",
+      "score": 3
+    },
+    {
+      "endpoint": "/backend/.env.production",
+      "score": 2
+    },
+    {
+      "endpoint": "/config/.env.dev",
+      "score": 2
+    },
+    {
+      "endpoint": "/wp-admin/images",
+      "score": 2
+    },
+    {
+      "endpoint": "/wp-admin/maint",
+      "score": 2
+    },
+    {
+      "endpoint": "/wp-admin/network",
+      "score": 2
+    },
+    {
+      "endpoint": "/.AWS_/credentials",
+      "score": 2
+    },
+    {
+      "endpoint": "/pathscan-2aca7e1f2486-nope.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/dev/.git/config",
+      "score": 2
+    },
+    {
+      "endpoint": "/node_modules/.package-lock.json",
+      "score": 2
+    },
+    {
+      "endpoint": "/.git.bak/HEAD",
+      "score": 2
+    },
+    {
+      "endpoint": "/public/.git/HEAD",
+      "score": 2
+    },
+    {
+      "endpoint": "/www.git/HEAD",
+      "score": 2
+    },
+    {
+      "endpoint": "/wp-admin/images/admin.php",
+      "score": 2
+    },
+    {
+      "endpoint": "/wp-admin/js/widgets",
+      "score": 2
+    },
+    {
+      "endpoint": "/wp-admin/css/index.php",
+      "score": 2
+    },
+    {
+      "endpoint": "/.env/.aws/credentials",
+      "score": 2
+    },
+    {
+      "endpoint": "/app/etc/config.php",
+      "score": 2
+    },
+    {
+      "endpoint": "/.github/workflows/release.yaml",
+      "score": 2
+    },
+    {
+      "endpoint": "/.github/workflows/test.yml",
+      "score": 2
+    },
+    {
+      "endpoint": "/.env.email",
+      "score": 2
+    },
+    {
+      "endpoint": "/.mail.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/.smtp.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/stripe/webhook_secret.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/.github/workflows/release.yml",
+      "score": 2
+    },
+    {
+      "endpoint": "/html/.git",
+      "score": 2
+    },
+    {
+      "endpoint": "/old/.git",
+      "score": 2
+    },
+    {
+      "endpoint": "/.Env",
+      "score": 2
+    },
+    {
+      "endpoint": "/img../.git/config",
+      "score": 2
+    },
+    {
+      "endpoint": "/events../.git/config",
+      "score": 2
+    },
+    {
+      "endpoint": "/js../.git/config",
+      "score": 2
+    },
+    {
+      "endpoint": "/lib../.git/config",
+      "score": 2
+    },
+    {
+      "endpoint": "/%252f/.env.local",
+      "score": 2
+    },
+    {
+      "endpoint": "/%2f.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/%2f.env.production",
+      "score": 2
+    },
+    {
+      "endpoint": "/config.php.save",
+      "score": 2
+    },
+    {
+      "endpoint": "/config.php.txt",
+      "score": 2
+    },
+    {
+      "endpoint": "/docker/app/.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/api/config.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/api/shared/.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/api/shared/config/.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/new/.env.local",
+      "score": 2
+    },
+    {
+      "endpoint": "/kyc/.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/new/.env.staging",
+      "score": 2
+    },
+    {
+      "endpoint": "/node/.env_example",
+      "score": 2
+    },
+    {
+      "endpoint": "/.env.test.local",
+      "score": 2
+    },
+    {
+      "endpoint": "/.env.docker.local",
+      "score": 2
+    },
+    {
+      "endpoint": "/.env.bkp",
+      "score": 2
+    },
+    {
+      "endpoint": "/.env.compose",
+      "score": 2
+    },
+    {
+      "endpoint": "/.env.original",
+      "score": 2
+    },
+    {
+      "endpoint": "/.env.master",
+      "score": 2
+    },
+    {
+      "endpoint": "/.env.previous",
+      "score": 2
+    },
+    {
+      "endpoint": "/.env_bak",
+      "score": 2
+    },
+    {
+      "endpoint": "/.env_2",
+      "score": 2
+    },
+    {
+      "endpoint": "/runtime.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/production.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/prod.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/.aws.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/paypal.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/mistral.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/backend/.env.local",
+      "score": 2
+    },
+    {
+      "endpoint": "/cgi-bin/.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/content/.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/crm/.env.local",
+      "score": 2
+    },
+    {
+      "endpoint": "/library/.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/docs/.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/newsite/.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/redmine/.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/public/.env.production",
+      "score": 2
+    },
+    {
+      "endpoint": "/storage/.env.local",
+      "score": 2
+    },
+    {
+      "endpoint": "/storage/.env.production",
+      "score": 2
+    },
+    {
+      "endpoint": "/vendor/laravel/.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/web/.env.production",
+      "score": 2
+    },
+    {
+      "endpoint": "/wp-admin/.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/config.php.orig",
+      "score": 2
+    },
+    {
+      "endpoint": "/doppler.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/infisical.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/vault.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/consul.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/mailer.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/db.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/postgres.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/copilot.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/xata.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/neon.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/hasura.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/planetscale.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/convex.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/supabase.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/prometheus.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/traefik.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/zipkin.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/langchain.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/concourse.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/llamaindex.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/rundeck.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/storybook.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/icons/.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/audio/.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/_static/.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/1password.env.template",
+      "score": 2
+    },
+    {
+      "endpoint": "/download/.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/.env/backup",
+      "score": 2
+    },
+    {
+      "endpoint": "/root/.docker/config.json",
+      "score": 2
+    },
+    {
+      "endpoint": "/.git/objects",
+      "score": 2
+    },
+    {
+      "endpoint": "/@fs/home/www-data/.aws/credentials",
+      "score": 2
+    },
+    {
+      "endpoint": "/@fs/home/node/.aws/credentials",
+      "score": 2
+    },
+    {
+      "endpoint": "/@fs/..%252f..%252f..%252f..%252f..%252fapp/.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/@fs/home/ubuntu/.aws/config",
+      "score": 2
+    },
+    {
+      "endpoint": "/@fs/.env.staging",
+      "score": 2
+    },
+    {
+      "endpoint": "/@fs/root/.aws/sso/cache",
+      "score": 2
+    },
+    {
+      "endpoint": "/application.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/src/.env.production",
+      "score": 2
+    },
+    {
+      "endpoint": "/admin/.env.local",
+      "score": 2
+    },
+    {
+      "endpoint": "/private/.env.production",
+      "score": 2
+    },
+    {
+      "endpoint": "/config/.env.php",
+      "score": 2
+    },
+    {
+      "endpoint": "/services/.env.production",
+      "score": 2
+    },
+    {
+      "endpoint": "/frontend/.env.prod",
+      "score": 2
+    },
+    {
+      "endpoint": "/app/.env.staging",
+      "score": 2
+    },
+    {
+      "endpoint": "/.vscode/.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/.github/secrets.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/api/shared/config.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/wp-admin/wplog.php",
+      "score": 2
+    },
+    {
+      "endpoint": "/.env.int",
+      "score": 2
+    },
+    {
+      "endpoint": "/aws/s3/env.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/lms/.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/@fs/root/.aws/credentials.backup",
+      "score": 2
+    },
+    {
+      "endpoint": "/api/.aws/credentials",
+      "score": 2
+    },
+    {
+      "endpoint": "/config/sendgrid.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/app/.env.prod",
+      "score": 2
+    },
+    {
+      "endpoint": "/secrets/.env",
+      "score": 2
+    },
+    {
+      "endpoint": "/.git/info/refs",
+      "score": 1
+    },
+    {
+      "endpoint": "/aws-bedrock.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/config/.aws/credentials",
+      "score": 1
+    },
+    {
+      "endpoint": "/bedrock/.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.bedrock",
+      "score": 1
+    },
+    {
+      "endpoint": "/config/bedrock.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/bedrock.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/bedrock-api-key.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.flask",
+      "score": 1
+    },
+    {
+      "endpoint": "/.github/workflows/merge.yml",
+      "score": 1
+    },
+    {
+      "endpoint": "/.github/workflows/pull-request.yml",
+      "score": 1
+    },
+    {
+      "endpoint": "/chatbot/.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/wp-admin/includes",
+      "score": 1
+    },
+    {
+      "endpoint": "/wp-admin/user",
+      "score": 1
+    },
+    {
+      "endpoint": "/backup/.git/reconx-2e52468f2d5d",
+      "score": 1
+    },
+    {
+      "endpoint": "/.git.bak/reconx-3a78f95a6851",
+      "score": 1
+    },
+    {
+      "endpoint": "/old/.git/reconx-4c51eb6dcbeb",
+      "score": 1
+    },
+    {
+      "endpoint": "/www.git/reconx-6b22e089f97c",
+      "score": 1
+    },
+    {
+      "endpoint": "/.git/reconx-609a64de3ff6",
+      "score": 1
+    },
+    {
+      "endpoint": "/public/.git/reconx-ac2005112c75",
+      "score": 1
+    },
+    {
+      "endpoint": "/html/.git/reconx-fdd410d72c5f",
+      "score": 1
+    },
+    {
+      "endpoint": "/.gitlab/token",
+      "score": 1
+    },
+    {
+      "endpoint": "/.gitconfig-credentials",
+      "score": 1
+    },
+    {
+      "endpoint": "/.cpanel/.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/peertube/config/.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/kbin/.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/misskey/.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/wp-admin/css/colors",
+      "score": 1
+    },
+    {
+      "endpoint": "/wp-admin/network/index.php",
+      "score": 1
+    },
+    {
+      "endpoint": "/wp-admin/user/index.php",
+      "score": 1
+    },
+    {
+      "endpoint": "/wp-admin/css/colors/midnight",
+      "score": 1
+    },
+    {
+      "endpoint": "/wp-admin/maint/admin.php",
+      "score": 1
+    },
+    {
+      "endpoint": "/wp-admin/css/colors/coffee/index.php",
+      "score": 1
+    },
+    {
+      "endpoint": "/images/class-config.php",
+      "score": 1
+    },
+    {
+      "endpoint": "/wp-admin/css/bolt.php",
+      "score": 1
+    },
+    {
+      "endpoint": "/wp-admin/css/colors/blue/index.php",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.local.php",
+      "score": 1
+    },
+    {
+      "endpoint": "/.github/workflows/prod.yml",
+      "score": 1
+    },
+    {
+      "endpoint": "/.github/workflows/dev.yml",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.langfuse",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.wandb",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.comet",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.logto",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.paddle",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.lemonsqueezy",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.chargebee",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.constantcontact",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.campaignmonitor",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.iterable",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.customerio",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.mailchimp",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.codex",
+      "score": 1
+    },
+    {
+      "endpoint": "/.cursor/.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.omnisend",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.getresponse",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.activecampaign",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.convertkit",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.default",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env_dev",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env_local",
+      "score": 1
+    },
+    {
+      "endpoint": "/.git/config.save",
+      "score": 1
+    },
+    {
+      "endpoint": "/.gitlab-ci.yaml",
+      "score": 1
+    },
+    {
+      "endpoint": "/.Dockerrun.aws.json",
+      "score": 1
+    },
+    {
+      "endpoint": "/wp-admin/fmadmin.php",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env_hlg",
+      "score": 1
+    },
+    {
+      "endpoint": "/test.config.php",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.slack",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.discord",
+      "score": 1
+    },
+    {
+      "endpoint": "/assets/.gitignore",
+      "score": 1
+    },
+    {
+      "endpoint": "/.aws/credent",
+      "score": 1
+    },
+    {
+      "endpoint": "/.dockerfile",
+      "score": 1
+    },
+    {
+      "endpoint": "/.Dockerfile",
+      "score": 1
+    },
+    {
+      "endpoint": "/.github/workflows/automerge.yml",
+      "score": 1
+    },
+    {
+      "endpoint": "/.github/workflows/build.yml",
+      "score": 1
+    },
+    {
+      "endpoint": "/.github/workflows/build.yaml",
+      "score": 1
+    },
+    {
+      "endpoint": "/.github/workflows/ci-daily.yml",
+      "score": 1
+    },
+    {
+      "endpoint": "/.github/workflows/ci-generated.yml",
+      "score": 1
+    },
+    {
+      "endpoint": "/.github/workflows/ci-issues.yml",
+      "score": 1
+    },
+    {
+      "endpoint": "/.github/workflows/ci-push.yml",
+      "score": 1
+    },
+    {
+      "endpoint": "/.github/workflows/ci.yaml",
+      "score": 1
+    },
+    {
+      "endpoint": "/.github/workflows/CI.yml",
+      "score": 1
+    },
+    {
+      "endpoint": "/.github/workflows/docker.yml",
+      "score": 1
+    },
+    {
+      "endpoint": "/.github/workflows/main.yaml",
+      "score": 1
+    },
+    {
+      "endpoint": "/.github/workflows/publish.yml",
+      "score": 1
+    },
+    {
+      "endpoint": "/.github/workflows/push.yml",
+      "score": 1
+    },
+    {
+      "endpoint": "/.github/workflows/snyk.yml",
+      "score": 1
+    },
+    {
+      "endpoint": "/.github/workflows/tests.yaml",
+      "score": 1
+    },
+    {
+      "endpoint": "/.github/workflows/tests.yml",
+      "score": 1
+    },
+    {
+      "endpoint": "/.github/workflows/test.yaml",
+      "score": 1
+    },
+    {
+      "endpoint": "/.gitpod.dockerfile",
+      "score": 1
+    },
+    {
+      "endpoint": "/.gitpod.Dockerfile",
+      "score": 1
+    },
+    {
+      "endpoint": "/includes/.gitignore",
+      "score": 1
+    },
+    {
+      "endpoint": "/web/.git/config",
+      "score": 1
+    },
+    {
+      "endpoint": "/studioserver/.git/config",
+      "score": 1
+    },
+    {
+      "endpoint": "/server/.git/config",
+      "score": 1
+    },
+    {
+      "endpoint": "/frontend/.git/config",
+      "score": 1
+    },
+    {
+      "endpoint": "/backup/.git/reconx-383fff6238d1",
+      "score": 1
+    },
+    {
+      "endpoint": "/html/.git/reconx-cf80a00934da",
+      "score": 1
+    },
+    {
+      "endpoint": "/www.git/reconx-cbc9ed1ced78",
+      "score": 1
+    },
+    {
+      "endpoint": "/.git.bak/reconx-8b1146e42fb2",
+      "score": 1
+    },
+    {
+      "endpoint": "/public/.git/reconx-f040055ca46f",
+      "score": 1
+    },
+    {
+      "endpoint": "/old/.git/reconx-4bdfdb5f5aeb",
+      "score": 1
+    },
+    {
+      "endpoint": "/.git/reconx-da96befe6aa5",
+      "score": 1
+    },
+    {
+      "endpoint": "/www.git",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.tokens",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.heroku",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.dusk.local",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.google",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.sqlite",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.gcp",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.2",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.1.bak",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env_backup",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.preview",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.private",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.firebase",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.0",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.gemini",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.database",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.db",
+      "score": 1
+    },
+    {
+      "endpoint": "/.git/reconx-73ae3eef6663",
+      "score": 1
+    },
+    {
+      "endpoint": "/.git.bak",
+      "score": 1
+    },
+    {
+      "endpoint": "/backup/.git",
+      "score": 1
+    },
+    {
+      "endpoint": "/backup/.git/reconx-b7d2bb875389",
+      "score": 1
+    },
+    {
+      "endpoint": "/public/.git/reconx-ab1b3304ab94",
+      "score": 1
+    },
+    {
+      "endpoint": "/default/.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.stage.local",
+      "score": 1
+    },
+    {
+      "endpoint": "/node_modules/%252eenv",
+      "score": 1
+    },
+    {
+      "endpoint": "/.aws/config.json",
+      "score": 1
+    },
+    {
+      "endpoint": "/%2f.aws%2fcredentials",
+      "score": 1
+    },
+    {
+      "endpoint": "/wwwroot/.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env-production",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.sh",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.back",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.example2",
+      "score": 1
+    },
+    {
+      "endpoint": "/inc/config.php",
+      "score": 1
+    },
+    {
+      "endpoint": "/includes/config.php",
+      "score": 1
+    },
+    {
+      "endpoint": "/lib/config.php",
+      "score": 1
+    },
+    {
+      "endpoint": "/.envs/.production/.django",
+      "score": 1
+    },
+    {
+      "endpoint": "/nextjs-app/.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/react-app/.env.production",
+      "score": 1
+    },
+    {
+      "endpoint": "/.config.php.swp",
+      "score": 1
+    },
+    {
+      "endpoint": "/blog.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/.aws/ecs-task-credentials.json",
+      "score": 1
+    },
+    {
+      "endpoint": "/site/all/libraries/mailchimp/.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/.aws",
+      "score": 1
+    },
+    {
+      "endpoint": "/secrets/aws_ses.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/api/.env.local",
+      "score": 1
+    },
+    {
+      "endpoint": "/mailer/.env.local",
+      "score": 1
+    },
+    {
+      "endpoint": "/prod/.env.local",
+      "score": 1
+    },
+    {
+      "endpoint": "/portal/.env.local",
+      "score": 1
+    },
+    {
+      "endpoint": "/price_hawk_client/.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/twilio/.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/twilio.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/secrets/twilio.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.twilio",
+      "score": 1
+    },
+    {
+      "endpoint": "/smtp.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/mail.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/office365.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/outlook.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.office365",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.openrouter",
+      "score": 1
+    },
+    {
+      "endpoint": "/anthropic.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/openrouter.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/openai/.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/anthropic/.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/openrouter/.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/secrets/openai.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/secrets/anthropic.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/.aws/secret_access_key.txt",
+      "score": 1
+    },
+    {
+      "endpoint": "/.aws/keys.conf",
+      "score": 1
+    },
+    {
+      "endpoint": "/.aws/config.yaml",
+      "score": 1
+    },
+    {
+      "endpoint": "/.aws/s3/config.json",
+      "score": 1
+    },
+    {
+      "endpoint": "/.aws/s3/secrets.yaml",
+      "score": 1
+    },
+    {
+      "endpoint": "/.aws/s3/credentials.ini",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.aws_access_keys",
+      "score": 1
+    },
+    {
+      "endpoint": "/secrets/aws.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/payment/.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/billing/.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/payments/.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/checkout/.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.stripe",
+      "score": 1
+    },
+    {
+      "endpoint": "/secrets/stripe.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/ci.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/config/env/sendgrid.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/secrets/sendgrid.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/brevo.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/mailjet.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/sendinblue.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.mailjet",
+      "score": 1
+    },
+    {
+      "endpoint": "/secrets/mailjet.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/secrets/brevo.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.brevo",
+      "score": 1
+    },
+    {
+      "endpoint": "/.vscode/mcp.json",
+      "score": 1
+    },
+    {
+      "endpoint": "/.aider.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/.github/dependabot.yml",
+      "score": 1
+    },
+    {
+      "endpoint": "/db_config.php",
+      "score": 1
+    },
+    {
+      "endpoint": "/application/config/config.php",
+      "score": 1
+    },
+    {
+      "endpoint": "/config/database.config.php",
+      "score": 1
+    },
+    {
+      "endpoint": "/config/application.config.php",
+      "score": 1
+    },
+    {
+      "endpoint": "/config/production.config.php",
+      "score": 1
+    },
+    {
+      "endpoint": "/config/test.config.php",
+      "score": 1
+    },
+    {
+      "endpoint": "/config/security.config.php",
+      "score": 1
+    },
+    {
+      "endpoint": "/config/acl.config.php",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.travis",
+      "score": 1
+    },
+    {
+      "endpoint": "/wp-admin/load-scripts.php",
+      "score": 1
+    },
+    {
+      "endpoint": "/wp-admin/load-styles.php",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env/.env.bak",
+      "score": 1
+    },
+    {
+      "endpoint": "/app/.aws/credentials",
+      "score": 1
+    },
+    {
+      "endpoint": "/.vercel/.env.production.local",
+      "score": 1
+    },
+    {
+      "endpoint": "/.supabase/.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/..%252F..%252F..%252F..%252F..%252F.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/frontend/.env.local",
+      "score": 1
+    },
+    {
+      "endpoint": "/hidden/.aws/credentials",
+      "score": 1
+    },
+    {
+      "endpoint": "/..;/..;/.aws/credentials",
+      "score": 1
+    },
+    {
+      "endpoint": "/vendor/.aws/credentials",
+      "score": 1
+    },
+    {
+      "endpoint": "/new/.env.production",
+      "score": 1
+    },
+    {
+      "endpoint": "/awstats/.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/js/.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/nginx/.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/xampp/.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/node_modules/.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/home/gitlab-runner/.aws/credentials",
+      "score": 1
+    },
+    {
+      "endpoint": "/twilio/.env.php",
+      "score": 1
+    },
+    {
+      "endpoint": "/wp-admin/wplogbak.php",
+      "score": 1
+    },
+    {
+      "endpoint": "/local.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.tpl",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.development.old",
+      "score": 1
+    },
+    {
+      "endpoint": "/src/.git/HEAD",
+      "score": 1
+    },
+    {
+      "endpoint": "/source/.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/framework/.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.enc",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.encrypted",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env.production.enc",
+      "score": 1
+    },
+    {
+      "endpoint": "/forms/.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/users/.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/@fs/.env.local",
+      "score": 1
+    },
+    {
+      "endpoint": "/services/api/.env",
+      "score": 1
+    },
+    {
+      "endpoint": "/backend/.env.backup",
+      "score": 1
+    },
+    {
+      "endpoint": "/wp-admin/txets.php",
+      "score": 1
+    },
+    {
+      "endpoint": "/.env-probe-db2ac5c8",
+      "score": 1
+    }
+  ]
+}

@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>URL Scanner Runner</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;user-select:none}
+:root{
+  --bg:#121214;--s1:#18181c;--s2:#1e1e24;--s3:#26262e;--brd:#2c2c36;
+  --tx:#e2e2ec;--tx-dim:#848496;--tx-faint:#484858;
+  --acc:#00b4d8;--acc-glow:rgba(0,180,216,0.3);
+  --grn:#00d26a;--yl:#ffc107;--red:#ff3b5c;--ora:#ff7043;--pur:#9c27b0;
+  --cyan:#00d2d3;
+}
+body{
+  font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg);color:var(--tx);height:100vh;overflow:hidden;
+}
+
+.app-window{display:grid;grid-template-rows:28px 38px 46px 1fr 140px;height:100vh}
+
+.win-titlebar{
+  background:#0d0d0f;border-bottom:1px solid #1c1c22;
+  display:flex;align-items:center;justify-content:space-between;padding:0 10px;font-size:11px;color:var(--tx-dim);
+}
+.win-titlebar .logo{display:flex;align-items:center;gap:6px;font-weight:600;color:#c0c0d2}
+.win-titlebar .logo svg{fill:#ff9800}
+.win-ctrls{display:flex;align-items:center;gap:12px}
+.win-ctrls-icons{display:flex;gap:10px;color:var(--tx-dim);cursor:pointer}
+.win-ctrls-icons span:hover{color:#fff}
+
+.navbar{
+  background:var(--s1);border-bottom:1px solid var(--brd);
+  display:flex;align-items:center;padding:0 8px;gap:4px;
+}
+.nav-item{
+  display:flex;align-items:center;gap:6px;padding:6px 12px;font-size:11px;color:var(--tx-dim);
+  cursor:pointer;border-radius:3px;font-weight:500;transition:all 0.1s;
+}
+.nav-item:hover{background:var(--s2);color:var(--tx)}
+.nav-item.active{color:var(--acc);background:rgba(0,180,216,0.08)}
+.nav-item svg{width:13px;height:13px;fill:currentColor}
+
+.runner-ctrls{
+  background:#141418;border-bottom:1px solid var(--brd);
+  display:grid;grid-template-columns:auto 1fr auto auto auto auto;
+  align-items:center;padding:0 12px;gap:16px;
+}
+.ctrl-start{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--tx-dim)}
+.ctrl-start input{
+  width:42px;background:#0d0d10;border:1px solid var(--brd);color:#fff;
+  border-radius:2px;padding:2px 4px;font-size:10px;font-family:monospace;outline:none;
+}
+
+.prog-container{display:flex;align-items:center;gap:8px;min-width:240px}
+.prog-circle{
+  width:14px;height:14px;border-radius:50%;border:2px solid var(--tx-dim);
+  display:inline-block;flex-shrink:0;
+}
+.prog-text{font-size:11px;color:var(--tx);font-family:Consolas,monospace;white-space:nowrap}
+.prog-bar-bg{
+  flex:1;height:14px;background:#0d0d10;border:1px solid var(--brd);
+  border-radius:2px;overflow:hidden;position:relative;
+}
+.prog-bar-fill{
+  height:100%;width:0%;background:linear-gradient(90deg,#2b5876,#4e4376);
+  transition:width 0.1s ease;
+}
+
+.ctrl-bots{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--tx-dim)}
+.ctrl-bots input[type=range]{
+  width:110px;accent-color:var(--acc);cursor:pointer;height:4px;
+}
+.ctrl-bots span{font-family:monospace;color:#fff;min-width:20px;font-weight:bold}
+
+.ctrl-radios{display:flex;align-items:center;gap:8px;font-size:10px;color:var(--tx-dim)}
+.ctrl-radios label{display:flex;align-items:center;gap:3px;cursor:pointer}
+.ctrl-radios input{accent-color:var(--acc);cursor:pointer}
+
+.ctrl-btn{
+  height:32px;padding:0 22px;border-radius:3px;font-size:11px;font-weight:700;
+  letter-spacing:0.5px;cursor:pointer;display:flex;align-items:center;gap:6px;
+  transition:all 0.15s;outline:none;
+}
+.btn-start{
+  background:#1a1a20;border:1px solid #777;color:#fff;
+}
+.btn-start:hover{background:#252530;border-color:#fff}
+.btn-stop{
+  background:#0a1e28;border:2px solid var(--acc);color:var(--acc);
+  box-shadow:0 0 10px var(--acc-glow);
+}
+.btn-stop:hover{background:#0e2a38;color:#fff;border-color:#fff}
+
+.runner-main{
+  display:grid;grid-template-columns:1fr 420px;overflow:hidden;background:#0d0d10;
+}
+
+.table-panel{display:flex;flex-direction:column;overflow:hidden;border-right:1px solid var(--brd)}
+.table-hdr{
+  background:#16161b;border-bottom:1px solid var(--brd);display:grid;
+  font-size:10px;color:var(--tx-dim);text-transform:uppercase;letter-spacing:0.4px;
+  font-weight:600;padding:5px 8px;
+}
+.bots-hdr{grid-template-columns:36px 1fr 200px 220px}
+.hits-hdr{grid-template-columns:60px 1fr 140px 65px 70px}
+
+.bot-rows{flex:1;overflow-y:auto;background:#0d0d10;font-family:Consolas,monospace;font-size:11px}
+.bot-rows::-webkit-scrollbar{width:5px}
+.bot-rows::-webkit-scrollbar-thumb{background:var(--brd);border-radius:2px}
+.bot-row{
+  display:grid;grid-template-columns:36px 1fr 200px 220px;padding:3px 8px;
+  border-bottom:1px solid #16161c;align-items:center;height:24px;white-space:nowrap;
+}
+.bot-row:hover{background:#16161e}
+.bot-col-id{color:var(--tx-dim)}
+.bot-col-data{overflow:hidden;text-overflow:ellipsis;color:#fff;padding-right:8px}
+.bot-col-ep{overflow:hidden;text-overflow:ellipsis;color:var(--cyan);font-size:10.5px}
+.bot-col-st{overflow:hidden;text-overflow:ellipsis;font-weight:600;font-size:10px;letter-spacing:0.2px}
+.st-PROCESSING{color:var(--yl)}
+.st-SUCCESS{color:var(--grn)}
+.st-FAIL{color:var(--tx-faint)}
+.st-ERROR{color:var(--red)}
+.st-IDLE{color:#404050}
+
+.hits-panel{display:flex;flex-direction:column;overflow:hidden;background:#0f0f13}
+.hits-list{flex:1;overflow-y:auto;font-family:Consolas,monospace;font-size:10.5px}
+.hits-list::-webkit-scrollbar{width:5px}
+.hits-list::-webkit-scrollbar-thumb{background:var(--brd);border-radius:2px}
+.hit-row{
+  display:grid;grid-template-columns:60px 1fr 140px 65px 70px;padding:3px 8px;
+  border-bottom:1px solid #16161c;align-items:center;height:24px;cursor:pointer;
+}
+.hit-row:hover{background:#181824}
+.hit-time{color:var(--tx-faint)}
+.hit-data{overflow:hidden;text-overflow:ellipsis;color:#fff;padding-right:6px}
+.hit-ep{overflow:hidden;text-overflow:ellipsis;color:var(--cyan)}
+.hit-type{font-weight:700;font-size:9.5px;letter-spacing:0.3px}
+.type-CRITICAL{color:var(--red)}
+.type-HIGH{color:var(--ora)}
+.type-MEDIUM{color:var(--yl)}
+.type-LOW{color:var(--cyan)}
+.type-INFO{color:var(--tx-dim)}
+.hit-cap{overflow:hidden;text-overflow:ellipsis;color:var(--grn);font-size:10px}
+
+.hits-footer{
+  background:#141418;border-top:1px solid var(--brd);display:flex;
+  align-items:center;justify-content:space-between;padding:4px 10px;font-size:10px;
+}
+.hits-subtabs{display:flex;gap:6px}
+.subtab{
+  padding:3px 8px;border-radius:2px;cursor:pointer;color:var(--tx-dim);
+}
+.subtab.active{background:#202028;color:#fff}
+.hits-timer{color:var(--tx-dim);font-family:Consolas,monospace}
+
+.runner-bottom{
+  background:#0d0d10;border-top:1px solid var(--brd);
+  display:grid;grid-template-columns:1fr 340px;overflow:hidden;
+}
+
+.bottom-left{
+  display:flex;flex-direction:column;border-right:1px solid var(--brd);padding:6px 10px;
+  gap:4px;overflow:hidden;
+}
+.cfg-row{
+  display:flex;align-items:center;gap:16px;font-size:10px;color:var(--tx-dim);
+}
+.cfg-badge{
+  background:#181820;border:1px solid var(--brd);padding:2px 8px;border-radius:2px;
+  color:var(--tx);font-family:Consolas,monospace;
+}
+.term-log{
+  flex:1;background:#08080a;border:1px solid #1e1e24;border-radius:2px;
+  padding:6px 8px;font-family:Consolas,monospace;font-size:10px;overflow-y:auto;
+  line-height:1.45;color:#b0b0c2;
+}
+.term-log::-webkit-scrollbar{width:4px}
+.term-log::-webkit-scrollbar-thumb{background:var(--brd);border-radius:2px}
+.log-line.sys{color:#76a0c4}
+.log-line.hit{color:var(--grn);font-weight:600}
+.log-line.err{color:var(--red)}
+.log-line.done{color:var(--acc);font-weight:600}
+.bot-bottom-bar{display:flex;align-items:center;justify-content:space-between}
+.btn-back{
+  background:#1a1a22;border:1px solid var(--brd);color:var(--tx-dim);
+  font-size:10px;padding:2px 10px;border-radius:2px;cursor:pointer;
+}
+.btn-back:hover{color:#fff;background:#242430}
+
+.bottom-right{
+  display:grid;grid-template-columns:1fr 1fr;padding:8px 12px;gap:8px;
+  background:#101014;font-size:10.5px;
+}
+.stat-col h4{
+  font-size:9.5px;text-transform:uppercase;color:var(--tx-dim);letter-spacing:0.5px;
+  margin-bottom:4px;display:flex;align-items:center;gap:4px;
+}
+.stat-col h4 svg{width:11px;height:11px;fill:currentColor}
+.stat-row{
+  display:flex;justify-content:space-between;padding:1px 0;font-family:Consolas,monospace;
+}
+.stat-row .lbl{color:var(--tx-dim)}
+.stat-row .val{font-weight:600;color:#fff}
+.val-green{color:var(--grn)!important}
+.val-orange{color:var(--ora)!important}
+.val-red{color:var(--red)!important}
+.val-yellow{color:var(--yl)!important}
+.val-cyan{color:var(--cyan)!important}
+
+.modal-backdrop{
+  position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);
+  display:none;align-items:center;justify-content:center;z-index:100;
+}
+.modal-backdrop.open{display:flex}
+.modal-box{
+  background:#16161c;border:1px solid var(--brd);border-radius:4px;
+  width:580px;max-width:92vw;max-height:86vh;display:flex;flex-direction:column;
+  box-shadow:0 8px 30px rgba(0,0,0,0.8);
+}
+.modal-hdr{
+  background:#121216;padding:10px 14px;border-bottom:1px solid var(--brd);
+  display:flex;align-items:center;justify-content:space-between;font-size:12px;font-weight:600;
+}
+.modal-close{cursor:pointer;color:var(--tx-dim);font-size:16px;line-height:1}
+.modal-close:hover{color:#fff}
+.modal-body{padding:14px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;font-size:11px}
+.modal-body textarea{
+  width:100%;height:220px;background:#0d0d10;border:1px solid var(--brd);
+  border-radius:3px;color:#fff;padding:8px;font-family:Consolas,monospace;font-size:11px;
+  outline:none;resize:vertical;line-height:1.4;
+}
+.modal-body textarea:focus{border-color:var(--acc)}
+.modal-ftr{
+  background:#121216;padding:10px 14px;border-top:1px solid var(--brd);
+  display:flex;justify-content:flex-end;gap:8px;
+}
+.btn-save{
+  background:var(--acc);color:#000;border:none;padding:5px 14px;border-radius:3px;
+  font-size:11px;font-weight:700;cursor:pointer;
+}
+.btn-save:hover{background:#00d2d3}
+.btn-cancel{
+  background:#202028;color:var(--tx);border:1px solid var(--brd);padding:5px 14px;
+  border-radius:3px;font-size:11px;cursor:pointer;
+}
+
+.toast{
+  position:fixed;bottom:20px;right:20px;background:#1e1e28;border:1px solid var(--acc);
+  color:#fff;padding:8px 14px;border-radius:3px;font-size:11px;box-shadow:0 4px 15px rgba(0,0,0,0.5);
+  display:none;z-index:200;
+}
+</style>
+</head>
+<body>
+
+<div class="app-window">
+
+  <div class="win-titlebar">
+    <div class="logo">
+      <svg width="12" height="12" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      <span>URL Scanner</span>
+    </div>
+    <div class="win-ctrls">
+      <div class="win-ctrls-icons">
+        <span>&#8212;</span>
+        <span>&#9633;</span>
+        <span>&#10005;</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="navbar">
+    <div class="nav-item active" id="tabRunner" onclick="selectNav('runner')">
+      <svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.38-1 1.72V7h4a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h4V5.72c-.6-.34-1-.98-1-1.72a2 2 0 0 1 2-2m-3 9a1 1 0 0 0-1 1 1 1 0 0 0 1 1 1 1 0 0 0 1-1 1 1 0 0 0-1-1m6 0a1 1 0 0 0-1 1 1 1 0 0 0 1 1 1 1 0 0 0 1-1 1 1 0 0 0-1-1m-7 5h8v-1H8v1z"/></svg>
+      <span>Runner</span>
+    </div>
+    <div class="nav-item" id="tabWordlists" onclick="openModal('wordlists')">
+      <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2m-5 14H7v-2h7v2m3-4H7v-2h10v2m0-4H7V7h10v2z"/></svg>
+      <span>Wordlists</span>
+    </div>
+    <div class="nav-item" id="tabConfigs" onclick="openModal('configs')">
+      <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84c-.24 0-.44.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+      <span>Configs</span>
+    </div>
+    <div class="nav-item" id="tabHitsDB" onclick="openModal('hitsdb')">
+      <svg viewBox="0 0 24 24"><path d="M12 3C7.58 3 4 4.79 4 7v10c0 2.21 3.58 4 8 4s8-1.79 8-4V7c0-2.21-3.58-4-8-4m0 2c3.87 0 6 1.5 6 2s-2.13 2-6 2-6-1.5-6-2 2.13-2 6-2m6 12c0 .5-2.13 2-6 2s-6-1.5-6-2v-2.23c1.61.78 3.73 1.23 6 1.23s4.39-.45 6-1.23V17m0-5c0 .5-2.13 2-6 2s-6-1.5-6-2V9.77c1.61.78 3.73 1.23 6 1.23s4.39-.45 6-1.23V12z"/></svg>
+      <span>Hits DB</span>
+    </div>
+    <div class="nav-item" onclick="showToast('Documentation disponible en local')">
+      <svg viewBox="0 0 24 24"><path d="M11 18h2v-2h-2v2m1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8m0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z"/></svg>
+      <span>Help</span>
+    </div>
+  </div>
+
+  <div class="runner-ctrls">
+    <div class="ctrl-start">
+      <span>Start:</span>
+      <input type="number" id="inpStart" value="1" min="1">
+    </div>
+
+    <div class="prog-container">
+      <div class="prog-circle"></div>
+      <div class="prog-text" id="lblProg">Prog: 0 / 0 (0%)</div>
+      <div class="prog-bar-bg">
+        <div class="prog-bar-fill" id="barProg"></div>
+      </div>
+    </div>
+
+    <div class="ctrl-bots">
+      <span>Bots:</span>
+      <span id="txtBots">10</span>
+      <input type="range" id="rngBots" min="1" max="100" value="10" oninput="document.getElementById('txtBots').textContent=this.value;reinitBots(parseInt(this.value))">
+    </div>
+
+    <div class="ctrl-radios">
+      <span>Prox:</span>
+      <label><input type="radio" name="radProx" value="DEF"> DEF</label>
+      <label><input type="radio" name="radProx" value="ON" checked> ON</label>
+      <label><input type="radio" name="radProx" value="OFF"> OFF</label>
+    </div>
+
+    <div class="ctrl-radios">
+      <span>Mut:</span>
+      <label><input type="radio" name="radMut" value="ON" checked> ON</label>
+      <label><input type="radio" name="radMut" value="OFF"> OFF</label>
+    </div>
+
+    <button class="ctrl-btn btn-start" id="btnRun" onclick="toggleRun()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+      <span>START</span>
+    </button>
+  </div>
+
+  <div class="runner-main">
+    <div class="table-panel">
+      <div class="table-hdr bots-hdr">
+        <div>Id</div>
+        <div>Data (URL)</div>
+        <div>Endpoint</div>
+        <div>Status</div>
+      </div>
+      <div class="bot-rows" id="botRows"></div>
+    </div>
+
+    <div class="hits-panel">
+      <div class="table-hdr hits-hdr">
+        <div>Time</div>
+        <div>Data</div>
+        <div>Endpoint</div>
+        <div>Type</div>
+        <div>Capture</div>
+      </div>
+      <div class="hits-list" id="hitsList"></div>
+      <div class="hits-footer">
+        <div class="hits-subtabs">
+          <div class="subtab active" id="stHits">Hits (<span id="cntHitsBadge">0</span>)</div>
+          <div class="subtab" id="stCustom">Custom</div>
+          <div class="subtab" id="stToCheck">ToCheck</div>
+        </div>
+        <div class="hits-timer" id="txtTimer">0 days 00:00:00</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="runner-bottom">
+    <div class="bottom-left">
+      <div class="cfg-row">
+        <div>Select CFG: <span class="cfg-badge" id="lblCfgName">Endpoints.json (880)</span></div>
+        <div>Select List: <span class="cfg-badge" id="lblListName">urls.txt (0 URLs)</span></div>
+      </div>
+      <div class="term-log" id="termLog">
+        <div class="log-line sys">Runner initialized successfully!</div>
+      </div>
+      <div class="bot-bottom-bar">
+        <button class="btn-back" onclick="openModal('wordlists')">&larr; Charger URLs</button>
+        <span style="font-size:10px;color:var(--tx-faint)">Bypass: chrome146 &bull; JA4 TLS &bull; Header Rotation</span>
+      </div>
+    </div>
+
+    <div class="bottom-right">
+      <div class="stat-col">
+        <h4>
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>
+          DATA
+        </h4>
+        <div class="stat-row"><span class="lbl">Total:</span><span class="val" id="stTotal">0</span></div>
+        <div class="stat-row"><span class="lbl">Hits:</span><span class="val val-green" id="stHitsVal">0</span></div>
+        <div class="stat-row"><span class="lbl">Custom:</span><span class="val val-orange" id="stCustomVal">0</span></div>
+        <div class="stat-row"><span class="lbl">Bad:</span><span class="val val-red" id="stBadVal">0</span></div>
+        <div class="stat-row"><span class="lbl">Retries:</span><span class="val val-yellow" id="stRetriesVal">0</span></div>
+        <div class="stat-row"><span class="lbl">To Check:</span><span class="val" id="stToCheckVal">0</span></div>
+        <div class="stat-row"><span class="lbl">OCR Rate:</span><span class="val val-cyan">0 %</span></div>
+      </div>
+
+      <div class="stat-col">
+        <h4>
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+          PERF & STATS
+        </h4>
+        <div class="stat-row"><span class="lbl">Total URLs:</span><span class="val" id="stTotalUrls">0</span></div>
+        <div class="stat-row"><span class="lbl">Alive URLs:</span><span class="val val-green" id="stAliveUrls">0</span></div>
+        <div class="stat-row"><span class="lbl">Banned:</span><span class="val">0</span></div>
+        <div class="stat-row"><span class="lbl">Errors:</span><span class="val val-red" id="stErrorsVal">0</span></div>
+        <div class="stat-row"><span class="lbl">CPM:</span><span class="val val-green" id="stCPM">0</span></div>
+        <div class="stat-row"><span class="lbl">Elapsed:</span><span class="val" id="stElapsed">0.0s</span></div>
+        <div class="stat-row"><span class="lbl">Usage:</span><span class="val val-cyan" id="stBotsUsage">0 / 10</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="modal-backdrop" id="modalWordlists">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <span>Wordlists - Liste d'URLs Cibles</span>
+      <span class="modal-close" onclick="closeModal('wordlists')">&times;</span>
+    </div>
+    <div class="modal-body">
+      <div>Entrez ou collez les URLs cibles (une par ligne) :</div>
+      <textarea id="taUrls" placeholder="https://example.com&#10;https://target-domain.fr&#10;192.168.1.100"></textarea>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="color:var(--tx-dim)" id="txtUrlsCount">0 URLs détectées</span>
+        <label class="btn-cancel" style="cursor:pointer">
+          Importer un fichier .txt
+          <input type="file" id="fileUrls" accept=".txt" style="display:none" onchange="importFile(this)">
+        </label>
+      </div>
+    </div>
+    <div class="modal-ftr">
+      <button class="btn-cancel" onclick="closeModal('wordlists')">Fermer</button>
+      <button class="btn-save" onclick="saveUrls()">Charger dans le Runner</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="modalConfigs">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <span>Configs - Paramètres de scan des Endpoints</span>
+      <span class="modal-close" onclick="closeModal('configs')">&times;</span>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <label style="color:var(--tx-dim);display:block;margin-bottom:4px">Endpoints à tester</label>
+          <select id="selTopEndpoints" style="width:100%;background:#0d0d10;color:#fff;border:1px solid var(--brd);padding:6px;border-radius:2px">
+            <option value="50">Top 50 les plus critiques</option>
+            <option value="100" selected>Top 100 les plus fréquents</option>
+            <option value="200">Top 200</option>
+            <option value="500">Top 500</option>
+            <option value="880">Tous les 880 endpoints</option>
+          </select>
+        </div>
+        <div>
+          <label style="color:var(--tx-dim);display:block;margin-bottom:4px">Timeout par requête (sec)</label>
+          <input type="number" id="inpTimeout" value="5" min="1" max="30" style="width:100%;background:#0d0d10;color:#fff;border:1px solid var(--brd);padding:6px;border-radius:2px">
+        </div>
+      </div>
+      <div>
+        <label style="color:var(--tx-dim);display:block;margin-bottom:4px">Impersonate Profile</label>
+        <div style="background:#0d0d10;border:1px solid var(--brd);padding:8px;border-radius:2px;color:var(--cyan);font-family:monospace">
+          chrome146 (Dernière empreinte TLS, JA4, HTTP/2 multiplexing)
+        </div>
+      </div>
+      <div>
+        <label style="color:var(--tx-dim);display:block;margin-bottom:4px">Bypass Anti-Scrap / WAF</label>
+        <div style="font-size:10.5px;color:var(--tx-dim);line-height:1.5">
+          &bull; Rotation automatique d'en-têtes IP (X-Forwarded-For, X-Real-IP, Client-IP, True-Client-IP)<br>
+          &bull; Mutations dynamiques de chemins sur codes 401/403 (//, /./, %20, %00, case shift)<br>
+          &bull; Détection temps réel de fuites de clés API, credentials, .env, .git
+        </div>
+      </div>
+    </div>
+    <div class="modal-ftr">
+      <button class="btn-save" onclick="closeModal('configs');showToast('Configuration enregistrée')">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="modalHitsDB">
+  <div class="modal-box" style="width:780px">
+    <div class="modal-hdr">
+      <span>Hits Database (<span id="dbHitsCount">0</span> découverts)</span>
+      <span class="modal-close" onclick="closeModal('hitsdb')">&times;</span>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;justify-content:space-between;gap:8px">
+        <input type="text" id="inpSearchHits" placeholder="Filtrer par URL ou endpoint..." oninput="filterHitsTable()" style="flex:1;background:#0d0d10;border:1px solid var(--brd);color:#fff;padding:5px 8px;border-radius:2px">
+        <button class="btn-cancel" onclick="exportHitsJSON()">Exporter JSON</button>
+        <button class="btn-cancel" onclick="exportHitsTXT()">Exporter TXT</button>
+      </div>
+      <div style="max-height:360px;overflow-y:auto;border:1px solid var(--brd)">
+        <table style="width:100%;border-collapse:collapse;font-size:10px;font-family:Consolas,monospace">
+          <thead style="background:#121218;color:var(--tx-dim);text-align:left">
+            <tr>
+              <th style="padding:6px">Heure</th>
+              <th style="padding:6px">URL Cible</th>
+              <th style="padding:6px">Endpoint</th>
+              <th style="padding:6px">Status</th>
+              <th style="padding:6px">Sévérité</th>
+              <th style="padding:6px">Taille</th>
+            </tr>
+          </thead>
+          <tbody id="tbHitsDB"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-ftr">
+      <button class="btn-cancel" onclick="closeModal('hitsdb')">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="mainToast"></div>
+
+<script>
+let isRunning = false;
+let currentJobId = null;
+let eventSource = null;
+let storedUrls = [];
+let allHits = [];
+let botElements = {};
+let activeBotsCount = 10;
+
+document.addEventListener('DOMContentLoaded', () => {
+  reinitBots(10);
+  document.getElementById('taUrls').addEventListener('input', updateUrlsCount);
+});
+
+function updateUrlsCount() {
+  const text = document.getElementById('taUrls').value.trim();
+  const count = text ? text.split('\n').filter(l => l.trim()).length : 0;
+  document.getElementById('txtUrlsCount').textContent = count + ' URLs détectées';
+}
+
+function openModal(id) {
+  const el = document.getElementById('modal' + id.charAt(0).toUpperCase() + id.slice(1));
+  if (el) el.classList.add('open');
+}
+
+function closeModal(id) {
+  const el = document.getElementById('modal' + id.charAt(0).toUpperCase() + id.slice(1));
+  if (el) el.classList.remove('open');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('mainToast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 2200);
+}
+
+function importFile(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      document.getElementById('taUrls').value = e.target.result;
+      updateUrlsCount();
+      showToast('Fichier importé avec succès');
+    };
+    reader.readAsText(input.files[0]);
+  }
+}
+
+function saveUrls() {
+  const text = document.getElementById('taUrls').value.trim();
+  storedUrls = text ? text.split('\n').map(u => u.trim()).filter(u => u) : [];
+  document.getElementById('lblListName').textContent = 'urls.txt (' + storedUrls.length + ' URLs)';
+  document.getElementById('stTotalUrls').textContent = storedUrls.length;
+  closeModal('wordlists');
+  addLog('sys', 'Wordlist chargée : ' + storedUrls.length + ' URLs prêtes pour analyse.');
+}
+
+function reinitBots(count) {
+  activeBotsCount = count;
+  const container = document.getElementById('botRows');
+  container.innerHTML = '';
+  botElements = {};
+
+  for (let i = 0; i < count; i++) {
+    const row = document.createElement('div');
+    row.className = 'bot-row';
+    row.id = 'botRow_' + i;
+
+    const colId = document.createElement('div');
+    colId.className = 'bot-col-id';
+    colId.textContent = (i + 1);
+
+    const colData = document.createElement('div');
+    colData.className = 'bot-col-data';
+    colData.textContent = '—';
+
+    const colEp = document.createElement('div');
+    colEp.className = 'bot-col-ep';
+    colEp.textContent = '—';
+
+    const colSt = document.createElement('div');
+    colSt.className = 'bot-col-st st-IDLE';
+    colSt.textContent = '<<< IDLE >>>';
+
+    row.appendChild(colId);
+    row.appendChild(colData);
+    row.appendChild(colEp);
+    row.appendChild(colSt);
+    container.appendChild(row);
+
+    botElements[i] = { row, colData, colEp, colSt };
+  }
+  document.getElementById('stBotsUsage').textContent = '0 / ' + count;
+}
+
+function updateBotState(id, url, ep, statusStr) {
+  const b = botElements[id];
+  if (!b) return;
+
+  b.colData.textContent = url || '—';
+  b.colData.title = url || '';
+  b.colEp.textContent = ep || '—';
+  b.colEp.title = ep || '';
+  b.colSt.textContent = statusStr;
+
+  if (statusStr.includes('PROCESSING') || statusStr.includes('TRY')) {
+    b.colSt.className = 'bot-col-st st-PROCESSING';
+  } else if (statusStr.includes('SUCCESS') || statusStr.includes('HIT')) {
+    b.colSt.className = 'bot-col-st st-SUCCESS';
+  } else if (statusStr.includes('FAIL') || statusStr.includes('404')) {
+    b.colSt.className = 'bot-col-st st-FAIL';
+  } else if (statusStr.includes('ERROR') || statusStr.includes('RETRY')) {
+    b.colSt.className = 'bot-col-st st-ERROR';
+  } else {
+    b.colSt.className = 'bot-col-st st-IDLE';
+  }
+}
+
+function addLog(cls, msg) {
+  const box = document.getElementById('termLog');
+  const d = document.createElement('div');
+  d.className = 'log-line ' + cls;
+  d.textContent = msg;
+  box.appendChild(d);
+  box.scrollTop = box.scrollHeight;
+}
+
+function addHitToUI(hit) {
+  allHits.push(hit);
+  document.getElementById('cntHitsBadge').textContent = allHits.length;
+  document.getElementById('dbHitsCount').textContent = allHits.length;
+
+  const list = document.getElementById('hitsList');
+  const row = document.createElement('div');
+  row.className = 'hit-row';
+
+  row.innerHTML = `
+    <div class="hit-time">${hit.time}</div>
+    <div class="hit-data" title="${esc(hit.url)}">${esc(hit.url)}</div>
+    <div class="hit-ep" title="${esc(hit.ep)}">${esc(hit.ep)}</div>
+    <div class="hit-type type-${hit.type}">${hit.type}</div>
+    <div class="hit-cap" title="${esc(hit.capture)}">${esc(hit.capture)}</div>
+  `;
+  list.insertBefore(row, list.firstChild);
+
+  renderHitsDBTable();
+}
+
+function renderHitsDBTable() {
+  const tbody = document.getElementById('tbHitsDB');
+  tbody.innerHTML = '';
+  allHits.forEach(h => {
+    const tr = document.createElement('tr');
+    tr.style.borderBottom = '1px solid #1a1a24';
+    tr.innerHTML = `
+      <td style="padding:4px 6px;color:var(--tx-dim)">${h.time}</td>
+      <td style="padding:4px 6px;color:#fff">${esc(h.url)}</td>
+      <td style="padding:4px 6px;color:var(--cyan)">${esc(h.ep)}</td>
+      <td style="padding:4px 6px">${h.status}</td>
+      <td style="padding:4px 6px;font-weight:bold" class="type-${h.type}">${h.type}</td>
+      <td style="padding:4px 6px">${h.size} b</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function filterHitsTable() {
+  const q = document.getElementById('inpSearchHits').value.toLowerCase();
+  const rows = document.querySelectorAll('#tbHitsDB tr');
+  rows.forEach(r => {
+    r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+
+async function toggleRun() {
+  if (isRunning) {
+    await stopScan();
+  } else {
+    await startScan();
+  }
+}
+
+async function startScan() {
+  if (!storedUrls.length) {
+    openModal('wordlists');
+    showToast('Veuillez ajouter au moins une URL cible.');
+    return;
+  }
+
+  const botsVal = parseInt(document.getElementById('rngBots').value) || 10;
+  const topEpVal = parseInt(document.getElementById('selTopEndpoints').value) || 100;
+  const timeoutVal = parseFloat(document.getElementById('inpTimeout').value) || 5.0;
+
+  const proxRad = document.querySelector('input[name="radProx"]:checked');
+  const useBypass = proxRad ? (proxRad.value !== 'OFF') : true;
+
+  const mutRad = document.querySelector('input[name="radMut"]:checked');
+  const useMut = mutRad ? (mutRad.value === 'ON') : true;
+
+  reinitBots(botsVal);
+
+  const btn = document.getElementById('btnRun');
+  btn.className = 'ctrl-btn btn-stop';
+  btn.innerHTML = `
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h12v12H6z"/></svg>
+    <span>STOP</span>
+  `;
+  isRunning = true;
+
+  document.getElementById('hitsList').innerHTML = '';
+  document.getElementById('termLog').innerHTML = '';
+  allHits = [];
+  document.getElementById('cntHitsBadge').textContent = '0';
+  document.getElementById('dbHitsCount').textContent = '0';
+
+  addLog('sys', `Lancement du scan : ${storedUrls.length} URLs, ${topEpVal} endpoints par URL, ${botsVal} bots.`);
+
+  try {
+    const payload = {
+      urls: storedUrls,
+      timeout: timeoutVal,
+      top_endpoints: topEpVal,
+      bots: botsVal,
+      use_bypass: useBypass,
+      use_mutations: useMut,
+    };
+
+    const res = await fetch('/batch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      throw new Error('Erreur HTTP ' + res.status);
+    }
+
+    const data = await res.json();
+    currentJobId = data.job_id;
+
+    listenEvents(currentJobId);
+  } catch (err) {
+    addLog('err', 'Erreur au démarrage du runner : ' + err.message);
+    finishRun('Erreur');
+  }
+}
+
+function listenEvents(jid) {
+  eventSource = new EventSource('/stream/' + jid);
+
+  eventSource.onmessage = function(e) {
+    try {
+      const msg = JSON.parse(e.data);
+      if (msg.t === '__close__') {
+        eventSource.close();
+        eventSource = null;
+        finishRun('Terminé');
+        return;
+      }
+      handleServerEvent(msg);
+    } catch (err) {}
+  };
+
+  eventSource.onerror = function() {
+    if (eventSource) {
+      eventSource.close();
+      eventSource = null;
+    }
+  };
+}
+
+function handleServerEvent(evt) {
+  const { t, d } = evt;
+
+  switch (t) {
+    case 'init':
+      document.getElementById('stTotal').textContent = d.total_tasks;
+      document.getElementById('stTotalUrls').textContent = d.total_urls;
+      document.getElementById('lblCfgName').textContent = 'Endpoints.json (' + d.total_ep + ')';
+      break;
+
+    case 'bot':
+      updateBotState(d.id, d.url, d.ep, d.st);
+      break;
+
+    case 'hit':
+      addHitToUI(d);
+      break;
+
+    case 'log':
+      addLog(d.cls, d.msg);
+      break;
+
+    case 'stats':
+      document.getElementById('lblProg').textContent = `Prog: ${d.done} / ${d.total} (${d.pct}%)`;
+      document.getElementById('barProg').style.width = d.pct + '%';
+
+      document.getElementById('stTotal').textContent = d.total;
+      document.getElementById('stHitsVal').textContent = d.hits;
+      document.getElementById('stCustomVal').textContent = d.custom;
+      document.getElementById('stBadVal').textContent = d.bad;
+      document.getElementById('stRetriesVal').textContent = d.retries;
+      document.getElementById('stToCheckVal').textContent = d.to_check;
+
+      document.getElementById('stCPM').textContent = d.cpm;
+      document.getElementById('stElapsed').textContent = d.elapsed + 's';
+      document.getElementById('stBotsUsage').textContent = d.active_bots + ' / ' + d.total_bots;
+
+      const mins = Math.floor(d.time_left / 60);
+      const secs = Math.floor(d.time_left % 60);
+      document.getElementById('txtTimer').textContent = `0 days 00:${pad(mins)}:${pad(secs)}`;
+      break;
+
+    case 'done':
+      if (eventSource) {
+        eventSource.close();
+        eventSource = null;
+      }
+      finishRun(d.cancelled ? 'Annulé' : 'Terminé');
+      break;
+  }
+}
+
+async function stopScan() {
+  if (currentJobId) {
+    try {
+      await fetch('/cancel/' + currentJobId, { method: 'POST' });
+    } catch (e) {}
+  }
+  if (eventSource) {
+    eventSource.close();
+    eventSource = null;
+  }
+  finishRun('Annulé par utilisateur');
+}
+
+function finishRun(statusLabel) {
+  isRunning = false;
+  currentJobId = null;
+
+  const btn = document.getElementById('btnRun');
+  btn.className = 'ctrl-btn btn-start';
+  btn.innerHTML = `
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+    <span>START</span>
+  `;
+
+  for (let i = 0; i < activeBotsCount; i++) {
+    updateBotState(i, '—', '—', '<<< IDLE >>>');
+  }
+  document.getElementById('stBotsUsage').textContent = '0 / ' + activeBotsCount;
+  showToast(statusLabel);
+}
+
+function exportHitsJSON() {
+  if (!allHits.length) {
+    showToast('Aucun hit à exporter.');
+    return;
+  }
+  const blob = new Blob([JSON.stringify(allHits, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'hits_' + Date.now() + '.json';
+  a.click();
+}
+
+function exportHitsTXT() {
+  if (!allHits.length) {
+    showToast('Aucun hit à exporter.');
+    return;
+  }
+  const lines = allHits.map(h => `${h.time} | ${h.url}${h.ep} | ${h.status} | [${h.type}] | ${h.size}b`);
+  const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'hits_' + Date.now() + '.txt';
+  a.click();
+}
+
+function pad(n) { return n < 10 ? '0' + n : n; }
+function esc(s) {
+  if (!s) return '';
+  const d = document.createElement('div');
+  d.textContent = String(s);
+  return d.innerHTML;
+}
+</script>
+</body>
+</html>
