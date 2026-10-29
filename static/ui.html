@@ -303,6 +303,98 @@ body{
   color:#fff;padding:8px 14px;border-radius:3px;font-size:11px;box-shadow:0 4px 15px rgba(0,0,0,0.5);
   display:none;z-index:200;
 }
+
+.nav-badge{
+  background:var(--acc);color:#000;font-size:9.5px;font-weight:700;
+  padding:1px 6px;border-radius:10px;margin-left:4px;line-height:1.2;
+}
+
+.hitsdb-page{
+  flex:1;display:flex;flex-direction:column;overflow:hidden;background:#0d0d10;
+}
+.hitsdb-topbar{
+  background:#141418;border-bottom:1px solid var(--brd);display:flex;align-items:center;
+  padding:0 12px;gap:12px;height:42px;flex-shrink:0;overflow-x:auto;white-space:nowrap;
+}
+.hitsdb-title{
+  display:flex;align-items:center;gap:6px;font-weight:700;font-size:11px;color:#fff;letter-spacing:0.4px;
+}
+.hitsdb-title svg{width:13px;height:13px;fill:var(--acc)}
+.hitsdb-stats{display:flex;align-items:center;gap:6px;font-size:10.5px}
+.hdb-stat{background:#1a1a22;border:1px solid var(--brd);padding:2px 8px;border-radius:2px;color:var(--tx-dim);font-family:Consolas,monospace}
+.hdb-stat strong{color:#fff}
+.stat-crit strong{color:var(--red)}
+.stat-high strong{color:var(--ora)}
+.stat-other strong{color:var(--yl)}
+.hitsdb-search input{
+  background:#0d0d10;border:1px solid var(--brd);color:#fff;border-radius:2px;
+  padding:4px 8px;font-size:11px;width:230px;outline:none;
+}
+.hitsdb-search input:focus{border-color:var(--acc)}
+.hitsdb-filters select{
+  background:#0d0d10;border:1px solid var(--brd);color:var(--tx);border-radius:2px;
+  padding:4px 8px;font-size:11px;outline:none;
+}
+.hitsdb-actions{display:flex;align-items:center;gap:6px;margin-left:auto}
+.hitsdb-table-container{
+  flex:1;display:flex;flex-direction:column;overflow:hidden;
+}
+.hitsdb-hdr{
+  background:#16161c;border-bottom:1px solid var(--brd);display:grid;
+  grid-template-columns:46px 75px 1fr 180px 65px 75px 230px 75px 65px 70px;
+  font-size:10px;color:var(--tx-dim);text-transform:uppercase;letter-spacing:0.4px;
+  font-weight:600;padding:6px 10px;flex-shrink:0;
+}
+.hitsdb-body{
+  flex:1;overflow-y:auto;background:#0d0d10;font-family:Consolas,monospace;font-size:10.5px;
+}
+.hitsdb-body::-webkit-scrollbar{width:5px}
+.hitsdb-body::-webkit-scrollbar-thumb{background:var(--brd);border-radius:2px}
+.hitsdb-row{
+  display:grid;grid-template-columns:46px 75px 1fr 180px 65px 75px 230px 75px 65px 70px;
+  padding:4px 10px;border-bottom:1px solid #16161c;align-items:center;height:28px;
+  cursor:pointer;white-space:nowrap;
+}
+.hitsdb-row:hover{background:#181824}
+.hdb-url{overflow:hidden;text-overflow:ellipsis;color:#fff;padding-right:8px}
+.hdb-ep{overflow:hidden;text-overflow:ellipsis;color:var(--cyan)}
+.hdb-code{font-weight:700;color:var(--grn)}
+.hdb-badge{font-weight:700;font-size:9.5px;letter-spacing:0.3px}
+.hdb-cap{overflow:hidden;text-overflow:ellipsis;color:var(--ora);font-size:10px}
+.btn-inspect{
+  background:#202028;border:1px solid var(--brd);color:var(--acc);font-size:9.5px;
+  padding:2px 6px;border-radius:2px;cursor:pointer;
+}
+.btn-inspect:hover{background:var(--acc);color:#000}
+
+.insp-section{display:flex;flex-direction:column;gap:6px}
+.insp-sec-title{
+  font-size:10px;text-transform:uppercase;color:var(--tx-dim);font-weight:700;
+  letter-spacing:0.4px;border-bottom:1px solid #1e1e28;padding-bottom:3px;
+}
+.insp-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;background:#111116;
+  border:1px solid var(--brd);border-radius:3px;padding:8px 10px;font-size:11px;
+}
+.insp-item{display:flex;align-items:center;gap:6px;overflow:hidden}
+.insp-lbl{color:var(--tx-dim);font-size:10.5px;flex-shrink:0}
+.insp-val{color:#fff;font-family:Consolas,monospace;overflow:hidden;text-overflow:ellipsis}
+.btn-copy-mini{
+  background:#1a1a24;border:1px solid var(--brd);color:var(--tx-dim);font-size:10px;
+  padding:1px 6px;border-radius:2px;cursor:pointer;flex-shrink:0;
+}
+.btn-copy-mini:hover{color:#fff;background:#252535}
+.insp-snippet{
+  background:#09090c;border:1px solid #1e1e28;border-radius:3px;padding:8px 10px;
+  font-family:Consolas,monospace;font-size:10.5px;line-height:1.45;color:#c0c0d4;
+  max-height:180px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;
+}
+.insp-snippet::-webkit-scrollbar{width:4px}
+.insp-snippet::-webkit-scrollbar-thumb{background:var(--brd);border-radius:2px}
+.match-tag{
+  background:#1c1c28;border:1px solid #333346;color:var(--yl);padding:2px 6px;
+  border-radius:2px;font-family:Consolas,monospace;font-size:10.5px;word-break:break-all;
+}
 </style>
 </head>
 <body>
@@ -324,9 +416,14 @@ body{
   </div>
 
   <div class="navbar">
-    <div class="nav-item active" id="tabRunner" onclick="selectNav('runner')">
+    <div class="nav-item active" id="tabRunner" onclick="switchNav('runner')">
       <svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.38-1 1.72V7h4a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h4V5.72c-.6-.34-1-.98-1-1.72a2 2 0 0 1 2-2m-3 9a1 1 0 0 0-1 1 1 1 0 0 0 1 1 1 1 0 0 0 1-1 1 1 0 0 0-1-1m6 0a1 1 0 0 0-1 1 1 1 0 0 0 1 1 1 1 0 0 0 1-1 1 1 0 0 0-1-1m-7 5h8v-1H8v1z"/></svg>
       <span>Runner</span>
+    </div>
+    <div class="nav-item" id="tabHitsDB" onclick="switchNav('hitsdb')">
+      <svg viewBox="0 0 24 24"><path d="M12 3C7.58 3 4 4.79 4 7v10c0 2.21 3.58 4 8 4s8-1.79 8-4V7c0-2.21-3.58-4-8-4m0 2c3.87 0 6 1.5 6 2s-2.13 2-6 2-6-1.5-6-2 2.13-2 6-2m6 12c0 .5-2.13 2-6 2s-6-1.5-6-2v-2.23c1.61.78 3.73 1.23 6 1.23s4.39-.45 6-1.23V17m0-5c0 .5-2.13 2-6 2s-6-1.5-6-2V9.77c1.61.78 3.73 1.23 6 1.23s4.39-.45 6-1.23V12z"/></svg>
+      <span>Hits DB</span>
+      <span class="nav-badge" id="navHitsBadge">0</span>
     </div>
     <div class="nav-item" id="tabWordlists" onclick="openModal('wordlists')">
       <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2m-5 14H7v-2h7v2m3-4H7v-2h10v2m0-4H7V7h10v2z"/></svg>
@@ -336,17 +433,14 @@ body{
       <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84c-.24 0-.44.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
       <span>Configs</span>
     </div>
-    <div class="nav-item" id="tabHitsDB" onclick="openModal('hitsdb')">
-      <svg viewBox="0 0 24 24"><path d="M12 3C7.58 3 4 4.79 4 7v10c0 2.21 3.58 4 8 4s8-1.79 8-4V7c0-2.21-3.58-4-8-4m0 2c3.87 0 6 1.5 6 2s-2.13 2-6 2-6-1.5-6-2 2.13-2 6-2m6 12c0 .5-2.13 2-6 2s-6-1.5-6-2v-2.23c1.61.78 3.73 1.23 6 1.23s4.39-.45 6-1.23V17m0-5c0 .5-2.13 2-6 2s-6-1.5-6-2V9.77c1.61.78 3.73 1.23 6 1.23s4.39-.45 6-1.23V12z"/></svg>
-      <span>Hits DB</span>
-    </div>
     <div class="nav-item" onclick="showToast('Documentation disponible en local')">
       <svg viewBox="0 0 24 24"><path d="M11 18h2v-2h-2v2m1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8m0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z"/></svg>
       <span>Help</span>
     </div>
   </div>
 
-  <div class="runner-ctrls">
+  <div id="viewRunner" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+    <div class="runner-ctrls">
     <div class="ctrl-start">
       <span>Start:</span>
       <input type="number" id="inpStart" value="1" min="1">
@@ -530,6 +624,59 @@ body{
     </div>
 
   </div>
+  </div>
+
+  <div id="viewHitsDB" class="hitsdb-page" style="display:none">
+    <div class="hitsdb-topbar">
+      <div class="hitsdb-title">
+        <svg viewBox="0 0 24 24"><path d="M12 3C7.58 3 4 4.79 4 7v10c0 2.21 3.58 4 8 4s8-1.79 8-4V7c0-2.21-3.58-4-8-4m0 2c3.87 0 6 1.5 6 2s-2.13 2-6 2-6-1.5-6-2 2.13-2 6-2m6 12c0 .5-2.13 2-6 2s-6-1.5-6-2v-2.23c1.61.78 3.73 1.23 6 1.23s4.39-.45 6-1.23V17m0-5c0 .5-2.13 2-6 2s-6-1.5-6-2V9.77c1.61.78 3.73 1.23 6 1.23s4.39-.45 6-1.23V12z"/></svg>
+        <span>HITS DATABASE & VULNÉRABILITÉS</span>
+      </div>
+
+      <div class="hitsdb-stats">
+        <span class="hdb-stat">Total: <strong id="dbStatTotal">0</strong></span>
+        <span class="hdb-stat stat-crit">Critiques: <strong id="dbStatCrit">0</strong></span>
+        <span class="hdb-stat stat-high">Élevés: <strong id="dbStatHigh">0</strong></span>
+        <span class="hdb-stat stat-other">Moyens/Bas: <strong id="dbStatOther">0</strong></span>
+      </div>
+
+      <div class="hitsdb-search">
+        <input type="text" id="inpDbSearch" placeholder="Rechercher par URL, endpoint, fuite..." oninput="filterDbTable()">
+      </div>
+
+      <div class="hitsdb-filters">
+        <select id="selDbSeverity" onchange="filterDbTable()">
+          <option value="ALL">Toutes sévérités</option>
+          <option value="CRITICAL">Critiques uniquement</option>
+          <option value="HIGH">Élevés uniquement</option>
+          <option value="OTHER">Moyens / Bas</option>
+        </select>
+      </div>
+
+      <div class="hitsdb-actions">
+        <button class="btn-cancel" onclick="exportHitsJSON()">Exporter JSON</button>
+        <button class="btn-cancel" onclick="exportHitsTXT()">Exporter TXT</button>
+        <button class="btn-cancel" onclick="copyAllHitUrls()">Copier URLs</button>
+        <button class="btn-cancel" onclick="clearHitsDB()" style="color:var(--red)">Vider DB</button>
+      </div>
+    </div>
+
+    <div class="hitsdb-table-container">
+      <div class="hitsdb-hdr">
+        <div>#</div>
+        <div>Heure</div>
+        <div>URL Cible</div>
+        <div>Endpoint</div>
+        <div>Statut</div>
+        <div>Sévérité</div>
+        <div>Capture / Fuite Détectée</div>
+        <div>Taille</div>
+        <div>Latence</div>
+        <div>Action</div>
+      </div>
+      <div class="hitsdb-body" id="tbDbRows"></div>
+    </div>
+  </div>
 
 </div>
 
@@ -618,36 +765,59 @@ body{
   </div>
 </div>
 
-<div class="modal-backdrop" id="modalHitsDB">
-  <div class="modal-box" style="width:780px">
+<div class="modal-backdrop" id="modalHitDetails">
+  <div class="modal-box" style="width:720px;max-width:94vw">
     <div class="modal-hdr">
-      <span>Hits Database (<span id="dbHitsCount">0</span> découverts)</span>
-      <span class="modal-close" onclick="closeModal('hitsdb')">&times;</span>
-    </div>
-    <div class="modal-body">
-      <div style="display:flex;justify-content:space-between;gap:8px">
-        <input type="text" id="inpSearchHits" placeholder="Filtrer par URL ou endpoint..." oninput="filterHitsTable()" style="flex:1;background:#0d0d10;border:1px solid var(--brd);color:#fff;padding:5px 8px;border-radius:2px">
-        <button class="btn-cancel" onclick="exportHitsJSON()">Exporter JSON</button>
-        <button class="btn-cancel" onclick="exportHitsTXT()">Exporter TXT</button>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-weight:700">Détails du Hit <span id="inspId">#1</span></span>
+        <span id="inspTypeBadge" class="hdb-badge type-CRITICAL">CRITICAL</span>
+        <span id="inspStatusBadge" class="hdb-code" style="background:#202028;padding:2px 6px;border-radius:2px">200 OK</span>
       </div>
-      <div style="max-height:360px;overflow-y:auto;border:1px solid var(--brd)">
-        <table style="width:100%;border-collapse:collapse;font-size:10px;font-family:Consolas,monospace">
-          <thead style="background:#121218;color:var(--tx-dim);text-align:left">
-            <tr>
-              <th style="padding:6px">Heure</th>
-              <th style="padding:6px">URL Cible</th>
-              <th style="padding:6px">Endpoint</th>
-              <th style="padding:6px">Status</th>
-              <th style="padding:6px">Sévérité</th>
-              <th style="padding:6px">Taille</th>
-            </tr>
-          </thead>
-          <tbody id="tbHitsDB"></tbody>
-        </table>
+      <span class="modal-close" onclick="closeModal('hitDetails')">&times;</span>
+    </div>
+
+    <div class="modal-body" style="gap:12px;max-height:74vh">
+      <div class="insp-section">
+        <div class="insp-sec-title">Informations Cible & Requête</div>
+        <div class="insp-grid">
+          <div class="insp-item"><span class="insp-lbl">URL Cible :</span><span class="insp-val" id="inspUrl">—</span></div>
+          <div class="insp-item"><span class="insp-lbl">Endpoint :</span><span class="insp-val" id="inspEp" style="color:var(--cyan)">—</span></div>
+          <div class="insp-item" style="grid-column:1 / -1">
+            <span class="insp-lbl">URL Complète :</span>
+            <div style="display:flex;align-items:center;gap:6px;flex:1;overflow:hidden">
+              <span class="insp-val" id="inspFullUrl" style="word-break:break-all;color:#fff">—</span>
+              <button class="btn-copy-mini" onclick="copyInspFullUrl()">Copier</button>
+              <a id="inspLink" href="#" target="_blank" class="btn-copy-mini" style="text-decoration:none">Ouvrir ↗</a>
+            </div>
+          </div>
+          <div class="insp-item"><span class="insp-lbl">Horodatage :</span><span class="insp-val" id="inspTime">—</span></div>
+          <div class="insp-item"><span class="insp-lbl">Bot Worker :</span><span class="insp-val" id="inspBot">—</span></div>
+          <div class="insp-item"><span class="insp-lbl">Taille Réponse :</span><span class="insp-val" id="inspSize">—</span></div>
+          <div class="insp-item"><span class="insp-lbl">Latence :</span><span class="insp-val" id="inspMs">—</span></div>
+          <div class="insp-item" style="grid-column:1 / -1"><span class="insp-lbl">Content-Type :</span><span class="insp-val" id="inspContentType">—</span></div>
+        </div>
+      </div>
+
+      <div class="insp-section">
+        <div class="insp-sec-title" style="color:var(--ora)">Capture & Fuites de Données Détectées</div>
+        <div id="inspLeaksBox" style="background:#131318;border:1px solid #282834;border-radius:3px;padding:8px;font-family:Consolas,monospace;font-size:11px">
+          <div id="inspCaptureLabel" style="color:var(--grn);font-weight:600;margin-bottom:6px">Mot de passe / Credentials</div>
+          <div id="inspMatchesContainer" style="display:flex;flex-direction:column;gap:4px"></div>
+        </div>
+      </div>
+
+      <div class="insp-section">
+        <div class="insp-sec-title">Aperçu du Corps de Réponse (Snippet Intercepté)</div>
+        <pre class="insp-snippet" id="inspSnippet">Aucun contenu intercepté</pre>
       </div>
     </div>
-    <div class="modal-ftr">
-      <button class="btn-cancel" onclick="closeModal('hitsdb')">Fermer</button>
+
+    <div class="modal-ftr" style="display:flex;justify-content:space-between">
+      <button class="btn-cancel" onclick="copyInspJSON()">Copier JSON complet</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn-cancel" onclick="closeModal('hitDetails')">Fermer</button>
+        <button class="btn-save" onclick="openInspTarget()">Ouvrir dans le navigateur</button>
+      </div>
     </div>
   </div>
 </div>
@@ -663,13 +833,39 @@ let allHits = [];
 let botElements = {};
 let activeBotsCount = 10;
 let maximizedPane = null;
+let currentNav = 'runner';
+let currentInspectedHit = null;
 
 document.addEventListener('DOMContentLoaded', () => {
   reinitBots(10);
   document.getElementById('taUrls').addEventListener('input', updateUrlsCount);
   updateEngineBadge();
   initSplitters();
+  if (window.location.pathname === '/hits' || window.location.hash === '#hitsdb') {
+    switchNav('hitsdb');
+  }
 });
+
+function switchNav(nav) {
+  currentNav = nav;
+  const tabRunner = document.getElementById('tabRunner');
+  const tabHitsDB = document.getElementById('tabHitsDB');
+  const viewRunner = document.getElementById('viewRunner');
+  const viewHitsDB = document.getElementById('viewHitsDB');
+
+  if (nav === 'runner') {
+    tabRunner.classList.add('active');
+    tabHitsDB.classList.remove('active');
+    viewRunner.style.display = 'flex';
+    viewHitsDB.style.display = 'none';
+  } else if (nav === 'hitsdb') {
+    tabHitsDB.classList.add('active');
+    tabRunner.classList.remove('active');
+    viewRunner.style.display = 'none';
+    viewHitsDB.style.display = 'flex';
+    renderHitsDbPage();
+  }
+}
 
 function toggleMaximize(paneId) {
   const pane = document.getElementById(paneId);
@@ -1019,6 +1215,7 @@ function renderFilteredHits() {
   filtered.forEach(hit => {
     const row = document.createElement('div');
     row.className = 'hit-row';
+    row.onclick = () => openHitInspector(hit);
     row.innerHTML = `
       <div class="hit-time">${hit.time}</div>
       <div class="hit-data" title="${esc(hit.url)}">${esc(hit.url)}</div>
@@ -1041,7 +1238,7 @@ function addHitToUI(hit) {
   document.getElementById('cntCritBadge').textContent = critHitsCount;
   document.getElementById('cntHighBadge').textContent = highHitsCount;
   document.getElementById('cntOtherBadge').textContent = otherHitsCount;
-  document.getElementById('dbHitsCount').textContent = allHits.length;
+  if (document.getElementById('navHitsBadge')) document.getElementById('navHitsBadge').textContent = allHits.length;
 
   if (currentHitsFilter === 'ALL' ||
      (currentHitsFilter === 'CRITICAL' && hit.type === 'CRITICAL') ||
@@ -1050,6 +1247,7 @@ function addHitToUI(hit) {
     const list = document.getElementById('hitsList');
     const row = document.createElement('div');
     row.className = 'hit-row';
+    row.onclick = () => openHitInspector(hit);
     row.innerHTML = `
       <div class="hit-time">${hit.time}</div>
       <div class="hit-data" title="${esc(hit.url)}">${esc(hit.url)}</div>
@@ -1060,33 +1258,157 @@ function addHitToUI(hit) {
     list.insertBefore(row, list.firstChild);
   }
 
-  renderHitsDBTable();
+  if (currentNav === 'hitsdb') {
+    renderHitsDbPage();
+  }
 }
 
-function renderHitsDBTable() {
-  const tbody = document.getElementById('tbHitsDB');
-  tbody.innerHTML = '';
-  allHits.forEach(h => {
-    const tr = document.createElement('tr');
-    tr.style.borderBottom = '1px solid #1a1a24';
-    tr.innerHTML = `
-      <td style="padding:4px 6px;color:var(--tx-dim)">${h.time}</td>
-      <td style="padding:4px 6px;color:#fff">${esc(h.url)}</td>
-      <td style="padding:4px 6px;color:var(--cyan)">${esc(h.ep)}</td>
-      <td style="padding:4px 6px">${h.status}</td>
-      <td style="padding:4px 6px;font-weight:bold" class="type-${h.type}">${h.type}</td>
-      <td style="padding:4px 6px">${h.size} b</td>
+function renderHitsDbPage() {
+  if (document.getElementById('dbStatTotal')) document.getElementById('dbStatTotal').textContent = allHits.length;
+  if (document.getElementById('dbStatCrit')) document.getElementById('dbStatCrit').textContent = critHitsCount;
+  if (document.getElementById('dbStatHigh')) document.getElementById('dbStatHigh').textContent = highHitsCount;
+  if (document.getElementById('dbStatOther')) document.getElementById('dbStatOther').textContent = otherHitsCount;
+  filterDbTable();
+}
+
+function filterDbTable() {
+  const q = (document.getElementById('inpDbSearch') ? document.getElementById('inpDbSearch').value : '').toLowerCase();
+  const sevFilter = document.getElementById('selDbSeverity') ? document.getElementById('selDbSeverity').value : 'ALL';
+  const container = document.getElementById('tbDbRows');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const filtered = allHits.filter(h => {
+    if (sevFilter === 'CRITICAL' && h.type !== 'CRITICAL') return false;
+    if (sevFilter === 'HIGH' && h.type !== 'HIGH') return false;
+    if (sevFilter === 'OTHER' && (h.type === 'CRITICAL' || h.type === 'HIGH')) return false;
+
+    if (q) {
+      const targetStr = `${h.url} ${h.ep} ${h.type} ${h.capture || ''}`.toLowerCase();
+      if (!targetStr.includes(q)) return false;
+    }
+    return true;
+  });
+
+  if (!filtered.length) {
+    container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--tx-dim);font-size:12px">Aucun hit disponible dans la base de données.</div>';
+    return;
+  }
+
+  filtered.forEach(hit => {
+    const row = document.createElement('div');
+    row.className = 'hitsdb-row';
+    row.onclick = () => openHitInspector(hit);
+
+    row.innerHTML = `
+      <div>#${hit.id || '—'}</div>
+      <div style="color:var(--tx-dim)">${hit.time}</div>
+      <div class="hdb-url" title="${esc(hit.url)}">${esc(hit.url)}</div>
+      <div class="hdb-ep" title="${esc(hit.ep)}">${esc(hit.ep)}</div>
+      <div><span class="hdb-code">${hit.status}</span></div>
+      <div><span class="hdb-badge type-${hit.type}">${hit.type}</span></div>
+      <div class="hdb-cap" title="${esc(hit.capture)}">${esc(hit.capture)}</div>
+      <div>${hit.size} b</div>
+      <div style="color:var(--tx-dim)">${hit.ms || 0} ms</div>
+      <div><button class="btn-inspect" onclick="event.stopPropagation();openHitInspector(allHits[${allHits.indexOf(hit)}])">Détails ↗</button></div>
     `;
-    tbody.appendChild(tr);
+    container.appendChild(row);
   });
 }
 
-function filterHitsTable() {
-  const q = document.getElementById('inpSearchHits').value.toLowerCase();
-  const rows = document.querySelectorAll('#tbHitsDB tr');
-  rows.forEach(r => {
-    r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none';
-  });
+function copyAllHitUrls() {
+  if (!allHits.length) {
+    showToast('Aucun hit disponible à copier.');
+    return;
+  }
+  const urls = allHits.map(h => h.full_url || (h.url + h.ep)).join('\n');
+  navigator.clipboard.writeText(urls);
+  showToast(`${allHits.length} URLs de hits copiées.`);
+}
+
+function clearHitsDB() {
+  allHits = [];
+  critHitsCount = 0;
+  highHitsCount = 0;
+  otherHitsCount = 0;
+  document.getElementById('cntHitsBadge').textContent = '0';
+  document.getElementById('cntCritBadge').textContent = '0';
+  document.getElementById('cntHighBadge').textContent = '0';
+  document.getElementById('cntOtherBadge').textContent = '0';
+  if (document.getElementById('navHitsBadge')) document.getElementById('navHitsBadge').textContent = '0';
+  document.getElementById('hitsList').innerHTML = '';
+  renderHitsDbPage();
+  fetch('/api/hits', { method: 'DELETE' }).catch(() => {});
+  showToast('Base de données des hits réinitialisée');
+}
+
+function openHitInspector(hit) {
+  currentInspectedHit = hit;
+  document.getElementById('inspId').textContent = '#' + (hit.id || '—');
+  const badge = document.getElementById('inspTypeBadge');
+  badge.className = 'hdb-badge type-' + hit.type;
+  badge.textContent = hit.type;
+
+  const stBadge = document.getElementById('inspStatusBadge');
+  stBadge.textContent = (hit.status || 200) + ' OK';
+
+  document.getElementById('inspUrl').textContent = hit.url || '—';
+  document.getElementById('inspUrl').title = hit.url || '';
+  document.getElementById('inspEp').textContent = hit.ep || '—';
+  const fullUrl = hit.full_url || (hit.url.replace(/\/$/, '') + hit.ep);
+  document.getElementById('inspFullUrl').textContent = fullUrl;
+  document.getElementById('inspLink').href = fullUrl;
+
+  document.getElementById('inspTime').textContent = hit.time || '—';
+  document.getElementById('inspBot').textContent = hit.bot ? ('Bot URL #' + hit.bot) : '—';
+  document.getElementById('inspSize').textContent = (hit.size || 0) + ' octets';
+  document.getElementById('inspMs').textContent = (hit.ms || 0) + ' ms';
+  document.getElementById('inspContentType').textContent = hit.content_type || 'text/html';
+
+  document.getElementById('inspCaptureLabel').textContent = hit.capture || 'Accessible';
+
+  const matchesBox = document.getElementById('inspMatchesContainer');
+  matchesBox.innerHTML = '';
+  if (hit.matches && hit.matches.length) {
+    hit.matches.forEach(m => {
+      const tag = document.createElement('div');
+      tag.className = 'match-tag';
+      tag.textContent = m;
+      matchesBox.appendChild(tag);
+    });
+  } else {
+    const emptyMsg = document.createElement('div');
+    emptyMsg.style.color = 'var(--tx-dim)';
+    emptyMsg.textContent = 'Aucun motif textuel sensible extrait.';
+    matchesBox.appendChild(emptyMsg);
+  }
+
+  const snip = document.getElementById('inspSnippet');
+  snip.textContent = hit.snippet || 'Aucun extrait de réponse disponible.';
+
+  openModal('hitDetails');
+}
+
+function copyInspFullUrl() {
+  if (currentInspectedHit) {
+    const u = currentInspectedHit.full_url || (currentInspectedHit.url.replace(/\/$/, '') + currentInspectedHit.ep);
+    navigator.clipboard.writeText(u);
+    showToast('URL copiée dans le presse-papier');
+  }
+}
+
+function copyInspJSON() {
+  if (currentInspectedHit) {
+    navigator.clipboard.writeText(JSON.stringify(currentInspectedHit, null, 2));
+    showToast('Données JSON du Hit copiées');
+  }
+}
+
+function openInspTarget() {
+  if (currentInspectedHit) {
+    const u = currentInspectedHit.full_url || (currentInspectedHit.url.replace(/\/$/, '') + currentInspectedHit.ep);
+    window.open(u, '_blank');
+  }
 }
 
 async function toggleRun() {

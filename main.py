@@ -33,6 +33,7 @@ app = FastAPI(title="URL Scanner", version="5.0.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
 JOBS: Dict[str, Dict[str, Any]] = {}
+GLOBAL_HITS: List[Dict[str, Any]] = []
 
 # --------------------------------------------------
 
@@ -52,6 +53,7 @@ class BatchRequest(BaseModel):
 # --------------------------------------------------
 
 @app.get("/")
+@app.get("/hits")
 def serve_ui():
     p = BASE_DIR / "static" / "ui.html"
     if not p.exists():
@@ -290,18 +292,25 @@ async def batch_scan(payload: BatchRequest):
                                 if sev in g:
                                     g[sev] += 1
 
+                                full_url = u.rstrip("/") + ep_path
                                 hit_obj = {
-                                    "id": g["hits"],
+                                    "id": len(GLOBAL_HITS) + 1,
+                                    "job_id": jid,
                                     "time": datetime.now().strftime("%H:%M:%S"),
                                     "bot": wid + 1,
                                     "url": u,
                                     "ep": ep_path,
+                                    "full_url": full_url,
                                     "status": status_code,
                                     "type": sev.upper(),
                                     "size": r.get("content_length", 0),
                                     "ms": r.get("response_time_ms", 0),
-                                    "capture": ", ".join(r.get("sensitive_data", [])) or f"{status_code} OK",
+                                    "content_type": r.get("content_type", ""),
+                                    "capture": ", ".join(r.get("sensitive_data", [])) or (f"{status_code} Accessible ({r.get('content_type', '')})" if r.get("content_type") else f"{status_code} Accessible"),
+                                    "matches": r.get("sensitive_matches", []),
+                                    "snippet": r.get("snippet", ""),
                                 }
+                                GLOBAL_HITS.append(hit_obj)
                                 JOBS[jid]["hits"].append(hit_obj)
                                 push("hit", hit_obj)
                                 push("bot", {
@@ -364,6 +373,19 @@ async def cancel_job(jid: str):
         raise HTTPException(404)
     job["cancel"] = True
     return {"status": "cancelling"}
+
+# --------------------------------------------------
+
+@app.get("/api/hits")
+def get_all_hits():
+    return {"hits": GLOBAL_HITS, "total": len(GLOBAL_HITS)}
+
+# --------------------------------------------------
+
+@app.delete("/api/hits")
+def clear_all_hits():
+    GLOBAL_HITS.clear()
+    return {"status": "cleared"}
 
 # --------------------------------------------------
 

@@ -41,16 +41,16 @@ PATH_MUTATIONS = [
 
 # --------------------------------------------------
 
-SENSITIVE_PATTERNS = [
-    re.compile(r"(password|passwd|pwd)\s*[:=]", re.IGNORECASE),
-    re.compile(r"(api[_-]?key|apikey|secret[_-]?key)\s*[:=]", re.IGNORECASE),
-    re.compile(r"(access[_-]?token|auth[_-]?token|bearer)\s*[:=]", re.IGNORECASE),
-    re.compile(r"(aws_access_key_id|aws_secret_access_key)", re.IGNORECASE),
-    re.compile(r"(database_url|db_password|db_host|mongodb)", re.IGNORECASE),
-    re.compile(r"(private[_-]?key|ssh-rsa|BEGIN RSA)", re.IGNORECASE),
-    re.compile(r"(smtp_password|mail_password|sendgrid)", re.IGNORECASE),
-    re.compile(r"\[core\]\s*\n\s*repositoryformatversion", re.IGNORECASE),
-    re.compile(r"(client_secret|client_id)\s*[:=]", re.IGNORECASE),
+SENSITIVE_DEFINITIONS = [
+    ("Mot de passe / Credentials", re.compile(r"(?:password|passwd|pwd)\s*[:=]\s*([^\s\r\n'\"]+)", re.IGNORECASE)),
+    ("Clé API / Secret Key", re.compile(r"(?:api[_-]?key|apikey|secret[_-]?key)\s*[:=]\s*([^\s\r\n'\"]+)", re.IGNORECASE)),
+    ("Token d'authentification", re.compile(r"(?:access[_-]?token|auth[_-]?token|bearer)\s*[:=]\s*([^\s\r\n'\"]+)", re.IGNORECASE)),
+    ("Identifiants AWS", re.compile(r"(?:aws_access_key_id|aws_secret_access_key)\s*[:=]?\s*([^\s\r\n'\"]+)", re.IGNORECASE)),
+    ("Configuration Base de Données", re.compile(r"(?:database_url|db_password|db_host|mongodb[:/])\s*[:=]?\s*([^\s\r\n'\"]+)", re.IGNORECASE)),
+    ("Clé privée RSA / SSH", re.compile(r"(?:private[_-]?key|ssh-rsa|BEGIN\s+(?:RSA\s+)?PRIVATE\s+KEY)", re.IGNORECASE)),
+    ("Serveur SMTP / Mail", re.compile(r"(?:smtp_password|mail_password|sendgrid[_-]?key)\s*[:=]\s*([^\s\r\n'\"]+)", re.IGNORECASE)),
+    ("Dépôt Git exposé", re.compile(r"\[core\]\s*\n\s*repositoryformatversion", re.IGNORECASE)),
+    ("OAuth Client Secret", re.compile(r"(?:client_secret|client_id)\s*[:=]\s*([^\s\r\n'\"]+)", re.IGNORECASE)),
 ]
 
 # --------------------------------------------------
@@ -66,12 +66,16 @@ def load_endpoints(path: Optional[Path] = None, top_n: Optional[int] = None) -> 
 
 # --------------------------------------------------
 
-def _check_sensitive(body: str) -> List[str]:
-    found = []
-    for pat in SENSITIVE_PATTERNS:
-        if pat.search(body):
-            found.append(pat.pattern)
-    return found
+def _check_sensitive(body: str):
+    labels = []
+    matches = []
+    for label, pat in SENSITIVE_DEFINITIONS:
+        m = pat.search(body)
+        if m:
+            labels.append(label)
+            matched_val = m.group(0)[:120]
+            matches.append(matched_val)
+    return labels, matches
 
 # --------------------------------------------------
 
@@ -105,14 +109,17 @@ def _analyze_resp(resp) -> Dict[str, Any]:
         cl = len(resp.content)
     except Exception:
         cl = int(resp.headers.get("content-length", 0))
-    sens = _check_sensitive(body) if body else []
-    sev = _classify(status, cl, sens, ct)
+    sens_labels, sens_matches = _check_sensitive(body) if body else ([], [])
+    sev = _classify(status, cl, sens_labels, ct)
+    snippet = body[:1500] if body else ""
     return {
         "status": status,
         "content_length": cl,
         "content_type": ct,
         "severity": sev,
-        "sensitive_data": sens,
+        "sensitive_data": sens_labels,
+        "sensitive_matches": sens_matches,
+        "snippet": snippet,
         "accessible": status in (200, 201, 202, 204) and cl > 0,
     }
 
@@ -138,6 +145,8 @@ async def probe_fast(
         "content_type": "",
         "response_time_ms": 0,
         "sensitive_data": [],
+        "sensitive_matches": [],
+        "snippet": "",
     }
 
     url = base_url.rstrip("/") + endpoint
