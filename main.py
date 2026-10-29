@@ -110,7 +110,8 @@ async def batch_scan(payload: BatchRequest):
     timeout = max(1.0, min(payload.timeout or 5.0, 30.0))
     use_bypass = payload.use_bypass if payload.use_bypass is not None else True
     use_mutations = payload.use_mutations if payload.use_mutations is not None else True
-    browser_choice = payload.browser or "chrome"
+    raw_browser = (payload.browser or "chrome").strip().lower()
+    browser_choice = raw_browser if raw_browser in ["chrome", "firefox", "safari", "random"] else "chrome"
 
     proxy_mgr = ProxyManager()
     if payload.use_proxy:

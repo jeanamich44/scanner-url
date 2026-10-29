@@ -1,5 +1,5 @@
 import random
-from typing import Dict, Tuple
+from typing import Dict, Optional, Tuple
 
 # --------------------------------------------------
 
@@ -21,7 +21,8 @@ CHROME_HEADERS = {
     "Sec-Fetch-Mode": "navigate",
     "Sec-Fetch-Site": "none",
     "Sec-Fetch-User": "?1",
-    "Upgrade-Insecure-Requests": "1"
+    "Upgrade-Insecure-Requests": "1",
+    "Priority": "u=0, i"
 }
 
 # --------------------------------------------------
@@ -36,6 +37,7 @@ FIREFOX_HEADERS = {
     "Sec-Fetch-Mode": "navigate",
     "Sec-Fetch-Site": "none",
     "Sec-Fetch-User": "?1",
+    "Te": "trailers",
     "Priority": "u=0, i"
 }
 
@@ -48,7 +50,8 @@ SAFARI_HEADERS = {
     "Accept-Encoding": "gzip, deflate, br",
     "Sec-Fetch-Dest": "document",
     "Sec-Fetch-Mode": "navigate",
-    "Sec-Fetch-Site": "none"
+    "Sec-Fetch-Site": "none",
+    "Priority": "u=0, i"
 }
 
 # --------------------------------------------------
@@ -61,6 +64,33 @@ PROFILES = {
 
 # --------------------------------------------------
 
+FORBIDDEN_NON_CHROMIUM = {
+    "sec-ch-ua",
+    "sec-ch-ua-mobile",
+    "sec-ch-ua-platform",
+    "sec-ch-ua-arch",
+    "sec-ch-ua-bitness",
+    "sec-ch-ua-model",
+    "sec-ch-ua-full-version-list"
+}
+
+# --------------------------------------------------
+
+def sanitize_headers(headers: Dict[str, str], browser_key: str) -> Dict[str, str]:
+    b = browser_key.strip().lower()
+    cleaned = dict(headers)
+    if b in ["firefox", "safari"]:
+        for k in list(cleaned.keys()):
+            if k.lower() in FORBIDDEN_NON_CHROMIUM:
+                del cleaned[k]
+        if b == "safari" and "upgrade-insecure-requests" in {k.lower() for k in cleaned.keys()}:
+            for k in list(cleaned.keys()):
+                if k.lower() == "upgrade-insecure-requests":
+                    del cleaned[k]
+    return cleaned
+
+# --------------------------------------------------
+
 def get_browser_profile(browser_name: str = "chrome") -> Tuple[str, Dict[str, str]]:
     key = browser_name.strip().lower()
     if key == "random":
@@ -68,4 +98,12 @@ def get_browser_profile(browser_name: str = "chrome") -> Tuple[str, Dict[str, st
     if key not in PROFILES:
         key = "chrome"
     impersonate_val, headers_template = PROFILES[key]
-    return impersonate_val, dict(headers_template)
+    return impersonate_val, sanitize_headers(dict(headers_template), key)
+
+# --------------------------------------------------
+
+def build_request_headers(base_headers: Dict[str, str], extra_headers: Optional[Dict[str, str]] = None, browser: str = "chrome") -> Dict[str, str]:
+    merged = dict(base_headers)
+    if extra_headers:
+        merged.update(extra_headers)
+    return sanitize_headers(merged, browser)

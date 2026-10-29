@@ -5,7 +5,7 @@ import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 from curl_cffi.requests import AsyncSession
-from src.core.browser_profiles import get_browser_profile
+from src.core.browser_profiles import get_browser_profile, sanitize_headers
 
 # --------------------------------------------------
 
@@ -141,10 +141,18 @@ async def probe_fast(
     }
 
     url = base_url.rstrip("/") + endpoint
+    browser_tag = "chrome"
+    if hasattr(session, "impersonate") and session.impersonate:
+        imp_lower = str(session.impersonate).lower()
+        if "firefox" in imp_lower:
+            browser_tag = "firefox"
+        elif "safari" in imp_lower:
+            browser_tag = "safari"
+
     if headers:
-        hdrs = dict(headers)
+        hdrs = sanitize_headers(headers, browser_tag)
     else:
-        _, hdrs = get_browser_profile("chrome")
+        _, hdrs = get_browser_profile(browser_tag)
 
     try:
         t0 = time.time()
