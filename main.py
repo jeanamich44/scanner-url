@@ -1,5 +1,6 @@
 import asyncio
 import json
+import re
 import sys
 import threading
 import time
@@ -7,7 +8,8 @@ import uuid
 import webbrowser
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Set, Tuple
+from urllib.parse import urlparse, urljoin
 
 import uvicorn
 from curl_cffi.requests import AsyncSession
@@ -17,7 +19,7 @@ from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from pydantic import BaseModel
 
 from src.core.scanner import UrlScanner
-from src.core.endpoint_scanner import load_endpoints, probe_fast
+from src.core.endpoint_scanner import load_endpoints, probe_fast, _analyze_resp
 from src.core.browser_profiles import get_browser_profile
 from src.core.proxy_manager import ProxyManager, format_proxy_line
 from src.core.database import save_hit, fetch_all_hits, fetch_db_stats, delete_all_hits
@@ -94,16 +96,145 @@ def _normalize_target(u: str) -> str:
 
 # --------------------------------------------------
 
+def _extract_origin_and_prefix(raw: str) -> Tuple[str, str]:
+    cleaned = raw.strip()
+    if not cleaned:
+        return ("", "/")
+    if not cleaned.startswith(("http://", "https://")):
+        cleaned = "https://" + cleaned
+    parsed = urlparse(cleaned)
+    origin = f"{parsed.scheme}://{parsed.netloc}"
+    path = parsed.path or "/"
+    if path == "/" or not path:
+        return (origin, "/")
+    parts = path.rstrip("/").split("/")
+    if "." in parts[-1]:
+        prefix = "/".join(parts[:-1]) + "/"
+    else:
+        prefix = path.rstrip("/") + "/"
+    if not prefix or prefix == "/":
+        prefix = "/"
+    return (origin, prefix)
+
+# --------------------------------------------------
+
+LISTING_PATTERNS = [
+    "index of /",
+    "index of/",
+    "directory listing for",
+    "directory listing of",
+    "[to parent directory]",
+    ">parent directory</a>",
+    'alt="[parentdir]"',
+    "<title>directory:",
+    "httpfileserver",
+    "listing: /",
+    "directory of /",
+]
+
+MAX_CRAWL_DEPTH = 4
+
+# --------------------------------------------------
+
+def _detect_listing(body: str, content_type: str = "") -> bool:
+    if not body:
+        return False
+    body_lower = body.lower()
+    ct = content_type.lower()
+    for p in LISTING_PATTERNS:
+        if p in body_lower:
+            return True
+    if "application/json" in ct:
+        try:
+            data = json.loads(body)
+            if isinstance(data, list) and len(data) > 0:
+                if any("type" in item and item["type"] in ("directory", "file") for item in data if isinstance(item, dict)):
+                    return True
+        except Exception:
+            pass
+    if ("application/xml" in ct or "text/xml" in ct):
+        if "<list>" in body_lower and ("<directory>" in body_lower or "<file>" in body_lower):
+            return True
+    return False
+
+# --------------------------------------------------
+
+_HREF_RE = re.compile(r'href=["\']([^"\']+)["\']', re.IGNORECASE)
+
+def _parse_listing_links(body: str, base_url: str) -> Tuple[List[str], List[str]]:
+    files = []
+    dirs = []
+    base_url = base_url.rstrip("/") + "/"
+    for m in _HREF_RE.finditer(body):
+        href = m.group(1)
+        if href.startswith(("?", "#", "mailto:", "javascript:")):
+            continue
+        if href.startswith(("http://", "https://")):
+            ph = urlparse(href)
+            pb = urlparse(base_url)
+            if ph.netloc != pb.netloc:
+                continue
+            href = ph.path
+        if href in ("/", "../", "./"):
+            continue
+        ctx = body[max(0, m.start() - 80):m.end() + 20].lower()
+        if "parent directory" in ctx:
+            continue
+        full = urljoin(base_url, href)
+        if href.endswith("/"):
+            dirs.append(full)
+        else:
+            files.append(full)
+    return files, dirs
+
+# --------------------------------------------------
+
+async def _crawl_tree(
+    session: AsyncSession,
+    url: str,
+    endpoint_basenames: Set[str],
+    depth: int,
+    headers: dict,
+    timeout: float,
+) -> List[Tuple[str, str]]:
+    if depth > MAX_CRAWL_DEPTH:
+        return []
+    matches = []
+    try:
+        resp = await session.get(url, headers=headers, timeout=timeout, allow_redirects=True)
+        body = resp.text or ""
+        ct = resp.headers.get("content-type", "")
+        if not _detect_listing(body, ct):
+            return []
+        files, dirs = _parse_listing_links(body, url)
+        for f_url in files:
+            fname = f_url.rstrip("/").split("/")[-1].lower()
+            if fname in endpoint_basenames:
+                rel = "/" + f_url.split("://", 1)[-1].split("/", 1)[-1] if "/" in f_url.split("://", 1)[-1] else "/"
+                matches.append((f_url, rel))
+        for d_url in dirs:
+            sub = await _crawl_tree(session, d_url, endpoint_basenames, depth + 1, headers, timeout)
+            matches.extend(sub)
+    except Exception:
+        pass
+    return matches
+
+# --------------------------------------------------
+
 @app.post("/batch")
 async def batch_scan(payload: BatchRequest):
     jid = str(uuid.uuid4())[:8]
-    targets = []
-    seen = set()
+
+    origin_map: Dict[str, Set[str]] = {}
     for raw in payload.urls:
-        norm = _normalize_target(raw)
-        if norm and norm not in seen:
-            seen.add(norm)
-            targets.append(norm)
+        origin, prefix = _extract_origin_and_prefix(raw)
+        if not origin:
+            continue
+        if origin not in origin_map:
+            origin_map[origin] = set()
+        origin_map[origin].add(prefix)
+
+    targets = [(origin, sorted(prefixes)) for origin, prefixes in origin_map.items()]
 
     if not targets:
         raise HTTPException(400, "Aucune URL valide fournie.")
@@ -112,6 +243,12 @@ async def batch_scan(payload: BatchRequest):
     all_endpoints = load_endpoints(top_n=top_n)
     if not all_endpoints:
         raise HTTPException(500, "Impossible de charger endpoints.json")
+
+    endpoint_basenames: Set[str] = set()
+    for ep in all_endpoints:
+        parts = ep["endpoint"].rstrip("/").split("/")
+        if parts:
+            endpoint_basenames.add(parts[-1].lower())
 
     url_concurrency = max(1, min(payload.url_bots or payload.bots or 10, 300))
     ep_concurrency = max(1, min(payload.endpoint_bots or 1, 20))
@@ -133,6 +270,10 @@ async def batch_scan(payload: BatchRequest):
             if local_proxy_file.exists():
                 proxy_mgr.load_file(str(local_proxy_file))
 
+    total_urls = len(targets)
+    total_ep = len(all_endpoints)
+    total_tasks = total_urls * total_ep
+
     JOBS[jid] = {
         "status": "running",
         "events": [],
@@ -145,13 +286,11 @@ async def batch_scan(payload: BatchRequest):
         JOBS[jid]["events"].append({"t": etype, "d": data})
 
     async def runner():
-        total_urls = len(targets)
-        total_ep = len(all_endpoints)
-        total_tasks = total_urls * total_ep
+        nonlocal total_tasks
 
         url_queue: asyncio.Queue = asyncio.Queue()
-        for u in targets:
-            url_queue.put_nowait(u)
+        for t in targets:
+            url_queue.put_nowait(t)
 
         start_time = time.time()
         alive_targets = set()
@@ -219,6 +358,37 @@ async def batch_scan(payload: BatchRequest):
                 "alive_urls": len(alive_targets),
             })
 
+        async def process_hit(wid, origin, ep_path, full_url, r, sev, status_code):
+            g["hits"] += 1
+            if sev in g:
+                g[sev] += 1
+            hit_obj = {
+                "id": 0,
+                "job_id": jid,
+                "time": datetime.now().strftime("%H:%M:%S"),
+                "bot": wid + 1,
+                "url": origin,
+                "ep": ep_path,
+                "full_url": full_url,
+                "status": status_code,
+                "type": sev.upper(),
+                "size": r.get("content_length", 0),
+                "ms": r.get("response_time_ms", 0),
+                "content_type": r.get("content_type", ""),
+                "capture": ", ".join(r.get("sensitive_data", [])) or (f"{status_code} Accessible ({r.get('content_type', '')})" if r.get("content_type") else f"{status_code} Accessible"),
+                "matches": r.get("sensitive_matches", []),
+                "snippet": r.get("snippet", ""),
+            }
+            db_id = save_hit(hit_obj)
+            if db_id:
+                hit_obj["id"] = db_id
+            JOBS[jid]["hits"].append(hit_obj)
+            push("hit", hit_obj)
+            push("log", {
+                "cls": "hit",
+                "msg": f"[HIT] Bot URL {wid+1} : {full_url} \u2192 {status_code} [{sev.upper()}] ({r.get('content_length')}b)"
+            })
+
         async def url_worker(wid: int):
             impersonate_val, base_headers = get_browser_profile(browser_choice)
             worker_proxy = proxy_mgr.get_proxy() if proxy_mgr.has_proxies() else None
@@ -227,23 +397,94 @@ async def batch_scan(payload: BatchRequest):
             async with AsyncSession(impersonate=impersonate_val, **proxy_arg) as session:
                 while not JOBS[jid].get("cancel"):
                     try:
-                        u = url_queue.get_nowait()
+                        origin, prefixes = url_queue.get_nowait()
                     except asyncio.QueueEmpty:
                         break
 
                     g["active_bots"] += 1
                     push("bot", {
                         "id": wid,
-                        "url": u,
-                        "ep": f"Initialisation ({ep_concurrency} flux)...",
+                        "url": origin,
+                        "ep": "Détection listing...",
                         "st": "<<< PROCESSING URL >>>",
+                    })
+
+                    listing_found = False
+                    crawl_base = None
+
+                    try:
+                        resp_root = await session.get(origin + "/", headers=base_headers, timeout=timeout, allow_redirects=True)
+                        body_root = resp_root.text or ""
+                        ct_root = resp_root.headers.get("content-type", "")
+                        if _detect_listing(body_root, ct_root):
+                            listing_found = True
+                            crawl_base = origin + "/"
+                            alive_targets.add(origin)
+                            push("log", {"cls": "sys", "msg": f"[BOT {wid+1}] {origin} \u2192 Directory Listing détecté (racine)"})
+                    except Exception:
+                        pass
+
+                    if not listing_found:
+                        for pfx in prefixes:
+                            if pfx == "/" or JOBS[jid].get("cancel"):
+                                continue
+                            try:
+                                pfx_url = origin + pfx
+                                resp_pfx = await session.get(pfx_url, headers=base_headers, timeout=timeout, allow_redirects=True)
+                                body_pfx = resp_pfx.text or ""
+                                ct_pfx = resp_pfx.headers.get("content-type", "")
+                                if _detect_listing(body_pfx, ct_pfx):
+                                    listing_found = True
+                                    crawl_base = pfx_url
+                                    alive_targets.add(origin)
+                                    push("log", {"cls": "sys", "msg": f"[BOT {wid+1}] {origin} \u2192 Directory Listing détecté ({pfx})"})
+                                    break
+                            except Exception:
+                                pass
+
+                    crawl_discovered = []
+                    if listing_found and crawl_base:
+                        push("bot", {
+                            "id": wid,
+                            "url": origin,
+                            "ep": f"CRAWL: {crawl_base}",
+                            "st": "<<< CRAWL MODE >>>",
+                            "total_slots": ep_concurrency,
+                        })
+
+                        push("ep_branch", {
+                            "bot_id": wid,
+                            "slot_id": 0,
+                            "url": origin,
+                            "ep": "Crawl arbre en cours...",
+                            "st": "PROCESSING",
+                            "total_slots": ep_concurrency,
+                        })
+
+                        crawl_discovered = await _crawl_tree(session, crawl_base, endpoint_basenames, 0, base_headers, timeout)
+
+                        already_covered = set()
+                        for ep in all_endpoints:
+                            already_covered.add((origin + ep["endpoint"]).lower())
+
+                        crawl_discovered = [(f_url, rel) for f_url, rel in crawl_discovered if f_url.lower() not in already_covered]
+
+                        crawl_ep_count = len(crawl_discovered)
+                        push("log", {"cls": "sys", "msg": f"[BOT {wid+1}] {origin} \u2192 {crawl_ep_count} fichiers sensibles supplémentaires découverts via crawl"})
+
+                    push("bot", {
+                        "id": wid,
+                        "url": origin,
+                        "ep": f"Brute-force ({ep_concurrency} flux)...",
+                        "st": "<<< PROCESSING URL >>>",
+                        "total_slots": ep_concurrency,
                     })
 
                     slot_queue = asyncio.Queue()
                     for s in range(ep_concurrency):
                         slot_queue.put_nowait(s)
 
-                    async def scan_single_ep(ep: Dict[str, Any]):
+                    async def scan_single_ep(base_u: str, ep: Dict[str, Any]):
                         slot_id = await slot_queue.get()
                         try:
                             if JOBS[jid].get("cancel"):
@@ -255,7 +496,7 @@ async def batch_scan(payload: BatchRequest):
                             push("ep_branch", {
                                 "bot_id": wid,
                                 "slot_id": slot_id,
-                                "url": u,
+                                "url": base_u,
                                 "ep": ep_path,
                                 "st": "PROCESSING",
                                 "total_slots": ep_concurrency,
@@ -263,7 +504,7 @@ async def batch_scan(payload: BatchRequest):
 
                             push("bot", {
                                 "id": wid,
-                                "url": u,
+                                "url": base_u,
                                 "ep": ep_path,
                                 "st": f"<<< REQ ({ep_concurrency} flux) >>>",
                                 "total_slots": ep_concurrency,
@@ -272,7 +513,7 @@ async def batch_scan(payload: BatchRequest):
                             try:
                                 r = await probe_fast(
                                     session=session,
-                                    base_url=u,
+                                    base_url=base_u,
                                     endpoint=ep_path,
                                     score=score,
                                     timeout=timeout,
@@ -297,61 +538,33 @@ async def batch_scan(payload: BatchRequest):
 
                             sev = r.get("severity", "none")
                             status_code = r.get("status")
+                            st_branch = "IDLE"
 
                             if not status_code:
                                 g["errors"] += 1
                                 st_branch = "ERROR"
                             else:
-                                alive_targets.add(u)
+                                alive_targets.add(base_u)
                                 st_branch = f"STATUS: [{status_code}]"
 
                             if r.get("accessible"):
-                                g["hits"] += 1
-                                if sev in g:
-                                    g[sev] += 1
-
-                                full_url = u.rstrip("/") + ep_path
-                                hit_obj = {
-                                    "id": 0,
-                                    "job_id": jid,
-                                    "time": datetime.now().strftime("%H:%M:%S"),
-                                    "bot": wid + 1,
-                                    "url": u,
-                                    "ep": ep_path,
-                                    "full_url": full_url,
-                                    "status": status_code,
-                                    "type": sev.upper(),
-                                    "size": r.get("content_length", 0),
-                                    "ms": r.get("response_time_ms", 0),
-                                    "content_type": r.get("content_type", ""),
-                                    "capture": ", ".join(r.get("sensitive_data", [])) or (f"{status_code} Accessible ({r.get('content_type', '')})" if r.get("content_type") else f"{status_code} Accessible"),
-                                    "matches": r.get("sensitive_matches", []),
-                                    "snippet": r.get("snippet", ""),
-                                }
-                                db_id = save_hit(hit_obj)
-                                if db_id:
-                                    hit_obj["id"] = db_id
-                                JOBS[jid]["hits"].append(hit_obj)
-                                push("hit", hit_obj)
+                                full_url = base_u.rstrip("/") + ep_path
+                                await process_hit(wid, base_u, ep_path, full_url, r, sev, status_code)
+                                st_branch = f"HIT: [{status_code}] {sev.upper()}"
                                 push("bot", {
                                     "id": wid,
-                                    "url": u,
+                                    "url": base_u,
                                     "ep": ep_path,
                                     "st": f"<<< SUCCESS: [{status_code}] HIT ({sev.upper()}) >>>",
                                     "total_slots": ep_concurrency,
                                 })
-                                push("log", {
-                                    "cls": "hit",
-                                    "msg": f"[HIT] Bot URL {wid+1} : {u}{ep_path} \u2192 {status_code} [{sev.upper()}] ({r.get('content_length')}b)"
-                                })
-                                st_branch = f"HIT: [{status_code}] {sev.upper()}"
                             else:
                                 if status_code == 404:
                                     g["bad"] += 1
                                     st_branch = "404 MISS"
                                 push("bot", {
                                     "id": wid,
-                                    "url": u,
+                                    "url": base_u,
                                     "ep": ep_path,
                                     "st": f"<<< REQ ({ep_concurrency} flux) >>>",
                                     "total_slots": ep_concurrency,
@@ -360,7 +573,7 @@ async def batch_scan(payload: BatchRequest):
                             push("ep_branch", {
                                 "bot_id": wid,
                                 "slot_id": slot_id,
-                                "url": u,
+                                "url": base_u,
                                 "ep": ep_path,
                                 "st": st_branch,
                                 "status_code": status_code,
@@ -374,7 +587,104 @@ async def batch_scan(payload: BatchRequest):
                         finally:
                             slot_queue.put_nowait(slot_id)
 
-                    await asyncio.gather(*(scan_single_ep(ep) for ep in all_endpoints))
+                    async def probe_crawled(full_url: str, rel_path: str):
+                        slot_id = await slot_queue.get()
+                        try:
+                            if JOBS[jid].get("cancel"):
+                                return
+
+                            push("ep_branch", {
+                                "bot_id": wid,
+                                "slot_id": slot_id,
+                                "url": origin,
+                                "ep": f"[CRAWL] {rel_path}",
+                                "st": "PROCESSING",
+                                "total_slots": ep_concurrency,
+                            })
+
+                            push("bot", {
+                                "id": wid,
+                                "url": origin,
+                                "ep": f"[CRAWL] {rel_path}",
+                                "st": "<<< PROBE CRAWL >>>",
+                                "total_slots": ep_concurrency,
+                            })
+
+                            try:
+                                t0 = time.time()
+                                resp = await session.get(full_url, headers=base_headers, timeout=timeout, allow_redirects=False)
+                                ms = round((time.time() - t0) * 1000, 1)
+                                r = _analyze_resp(resp)
+                                r["response_time_ms"] = ms
+                            except Exception:
+                                r = {
+                                    "status": 0,
+                                    "severity": "none",
+                                    "accessible": False,
+                                    "content_length": 0,
+                                    "response_time_ms": 0,
+                                    "sensitive_data": [],
+                                    "sensitive_matches": [],
+                                    "snippet": "",
+                                }
+
+                            g["done"] += 1
+                            g["checks_ts"].append(time.time())
+
+                            sev = r.get("severity", "none")
+                            status_code = r.get("status")
+                            st_branch = "IDLE"
+
+                            if not status_code:
+                                g["errors"] += 1
+                                st_branch = "ERROR"
+                            else:
+                                st_branch = f"STATUS: [{status_code}]"
+
+                            if r.get("accessible"):
+                                await process_hit(wid, origin, f"[CRAWL] {rel_path}", full_url, r, sev, status_code)
+                                st_branch = f"HIT: [{status_code}] {sev.upper()}"
+                                push("bot", {
+                                    "id": wid,
+                                    "url": origin,
+                                    "ep": f"[CRAWL] {rel_path}",
+                                    "st": f"<<< SUCCESS: [{status_code}] HIT ({sev.upper()}) >>>",
+                                    "total_slots": ep_concurrency,
+                                })
+                            else:
+                                if status_code == 404:
+                                    g["bad"] += 1
+                                    st_branch = "404 MISS"
+
+                            push("ep_branch", {
+                                "bot_id": wid,
+                                "slot_id": slot_id,
+                                "url": origin,
+                                "ep": f"[CRAWL] {rel_path}",
+                                "st": st_branch,
+                                "status_code": status_code,
+                                "total_slots": ep_concurrency,
+                            })
+
+                            now_tick = time.time()
+                            if now_tick - last_stats_emit > 0.08:
+                                emit_stats_now()
+
+                        finally:
+                            slot_queue.put_nowait(slot_id)
+
+                    bf_tasks = []
+                    for ep in all_endpoints:
+                        bf_tasks.append(scan_single_ep(origin, ep))
+
+                    crawl_tasks = []
+                    if crawl_discovered:
+                        total_tasks += len(crawl_discovered)
+                        for f_url, rel in crawl_discovered:
+                            crawl_tasks.append(probe_crawled(f_url, rel))
+
+                    await asyncio.gather(*(bf_tasks + crawl_tasks))
+
                     url_queue.task_done()
                     g["active_bots"] = max(0, g["active_bots"] - 1)
 
@@ -382,28 +692,28 @@ async def batch_scan(payload: BatchRequest):
                         push("ep_branch", {
                             "bot_id": wid,
                             "slot_id": s,
-                            "url": u,
+                            "url": origin,
                             "ep": "—",
                             "st": "IDLE",
                             "total_slots": ep_concurrency,
                         })
 
-            push("bot", {
-                "id": wid,
-                "url": "—",
-                "ep": "—",
-                "st": "<<< IDLE >>>",
-                "total_slots": ep_concurrency,
-            })
-            for s in range(ep_concurrency):
-                push("ep_branch", {
-                    "bot_id": wid,
-                    "slot_id": s,
+                push("bot", {
+                    "id": wid,
                     "url": "—",
                     "ep": "—",
-                    "st": "IDLE",
+                    "st": "<<< IDLE >>>",
                     "total_slots": ep_concurrency,
                 })
+                for s in range(ep_concurrency):
+                    push("ep_branch", {
+                        "bot_id": wid,
+                        "slot_id": s,
+                        "url": "—",
+                        "ep": "—",
+                        "st": "IDLE",
+                        "total_slots": ep_concurrency,
+                    })
 
         workers = [asyncio.create_task(url_worker(i)) for i in range(url_concurrency)]
         await asyncio.gather(*workers)
