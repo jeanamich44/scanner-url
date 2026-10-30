@@ -111,7 +111,8 @@ body{
   font-weight:600;padding:5px 8px;flex-shrink:0;
 }
 .bots-hdr{grid-template-columns:36px 1fr 220px 220px}
-.hits-hdr{grid-template-columns:60px 1fr 140px 65px 70px}
+.hits-hdr{grid-template-columns:55px 130px 1fr 65px 110px;white-space:nowrap}
+.hits-hdr > div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 
 .bot-rows{flex:1;overflow-y:auto;background:#0d0d10;font-family:Consolas,monospace;font-size:11px}
 .bot-rows::-webkit-scrollbar{width:5px}
@@ -161,20 +162,21 @@ body{
 .hits-list::-webkit-scrollbar{width:5px}
 .hits-list::-webkit-scrollbar-thumb{background:var(--brd);border-radius:2px}
 .hit-row{
-  display:grid;grid-template-columns:60px 1fr 140px 65px 70px;padding:3px 8px;
+  display:grid;grid-template-columns:55px 130px 1fr 65px 110px;padding:0 8px;
   border-bottom:1px solid #16161c;align-items:center;height:24px;cursor:pointer;
+  white-space:nowrap;overflow:hidden;
 }
 .hit-row:hover{background:#181824}
-.hit-time{color:var(--tx-faint)}
-.hit-data{overflow:hidden;text-overflow:ellipsis;color:#fff;padding-right:6px}
-.hit-ep{overflow:hidden;text-overflow:ellipsis;color:var(--cyan)}
-.hit-type{font-weight:700;font-size:9.5px;letter-spacing:0.3px}
+.hit-time{color:var(--tx-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.hit-data{overflow:hidden;text-overflow:ellipsis;color:#fff;padding-right:6px;white-space:nowrap;min-width:0}
+.hit-ep{overflow:hidden;text-overflow:ellipsis;color:var(--cyan);white-space:nowrap;min-width:0;padding-right:6px}
+.hit-type{font-weight:700;font-size:9.5px;letter-spacing:0.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .type-CRITICAL{color:var(--red)}
 .type-HIGH{color:var(--ora)}
 .type-MEDIUM{color:var(--yl)}
 .type-LOW{color:var(--cyan)}
 .type-INFO{color:var(--tx-dim)}
-.hit-cap{overflow:hidden;text-overflow:ellipsis;color:var(--grn);font-size:10px}
+.hit-cap{overflow:hidden;text-overflow:ellipsis;color:var(--grn);font-size:10px;white-space:nowrap;min-width:0}
 
 .hits-footer{
   background:#141418;border-top:1px solid var(--brd);display:flex;
@@ -868,7 +870,16 @@ let isRunning = false;
 let currentJobId = null;
 let eventSource = null;
 let storedUrls = [];
-let allHits = [];
+let sessionHits = [];
+let sessionCritCount = 0;
+let sessionHighCount = 0;
+let sessionOtherCount = 0;
+
+let dbHits = [];
+let dbCritCount = 0;
+let dbHighCount = 0;
+let dbOtherCount = 0;
+
 let botElements = {};
 let activeBotsCount = 10;
 let maximizedPane = null;
@@ -880,7 +891,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('taUrls').addEventListener('input', updateUrlsCount);
   updateEngineBadge();
   initSplitters();
-  loadInitialHits();
+  loadDbHits();
   updateVolumeCalculation();
   if (window.location.pathname === '/hits' || window.location.hash === '#hitsdb') {
     switchNav('hitsdb');
@@ -903,29 +914,24 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-async function loadInitialHits() {
+async function loadDbHits() {
   try {
     const res = await fetch('/api/hits');
     if (res.ok) {
       const data = await res.json();
-      if (data.hits && data.hits.length) {
-        allHits = data.hits;
-        critHitsCount = 0;
-        highHitsCount = 0;
-        otherHitsCount = 0;
-        allHits.forEach(h => {
-          if (h.type === 'CRITICAL') critHitsCount++;
-          else if (h.type === 'HIGH') highHitsCount++;
-          else otherHitsCount++;
+      if (data.hits) {
+        dbHits = data.hits;
+        dbCritCount = 0;
+        dbHighCount = 0;
+        dbOtherCount = 0;
+        dbHits.forEach(h => {
+          if (h.type === 'CRITICAL') dbCritCount++;
+          else if (h.type === 'HIGH') dbHighCount++;
+          else dbOtherCount++;
         });
-        document.getElementById('cntHitsBadge').textContent = allHits.length;
-        document.getElementById('cntCritBadge').textContent = critHitsCount;
-        document.getElementById('cntHighBadge').textContent = highHitsCount;
-        document.getElementById('cntOtherBadge').textContent = otherHitsCount;
         if (document.getElementById('navHitsBadge')) {
-          document.getElementById('navHitsBadge').textContent = allHits.length;
+          document.getElementById('navHitsBadge').textContent = dbHits.length;
         }
-        renderFilteredHits();
         renderHitsDbPage();
       }
     }
@@ -949,7 +955,7 @@ function switchNav(nav) {
     tabRunner.classList.remove('active');
     viewRunner.style.display = 'none';
     viewHitsDB.style.display = 'flex';
-    renderHitsDbPage();
+    loadDbHits();
   }
 }
 
@@ -1646,9 +1652,6 @@ function addLog(cls, msg) {
 }
 
 let currentHitsFilter = 'ALL';
-let critHitsCount = 0;
-let highHitsCount = 0;
-let otherHitsCount = 0;
 
 function filterHitsView(type) {
   currentHitsFilter = type;
@@ -1670,7 +1673,7 @@ function filterHitsView(type) {
 function renderFilteredHits() {
   const list = document.getElementById('hitsList');
   list.innerHTML = '';
-  const filtered = allHits.filter(h => {
+  const filtered = sessionHits.filter(h => {
     if (currentHitsFilter === 'ALL') return true;
     if (currentHitsFilter === 'CRITICAL') return h.type === 'CRITICAL';
     if (currentHitsFilter === 'HIGH') return h.type === 'HIGH';
@@ -1694,17 +1697,22 @@ function renderFilteredHits() {
 }
 
 function addHitToUI(hit) {
-  allHits.unshift(hit);
+  sessionHits.unshift(hit);
 
-  if (hit.type === 'CRITICAL') critHitsCount++;
-  else if (hit.type === 'HIGH') highHitsCount++;
-  else otherHitsCount++;
+  if (hit.type === 'CRITICAL') sessionCritCount++;
+  else if (hit.type === 'HIGH') sessionHighCount++;
+  else sessionOtherCount++;
 
-  document.getElementById('cntHitsBadge').textContent = allHits.length;
-  document.getElementById('cntCritBadge').textContent = critHitsCount;
-  document.getElementById('cntHighBadge').textContent = highHitsCount;
-  document.getElementById('cntOtherBadge').textContent = otherHitsCount;
-  if (document.getElementById('navHitsBadge')) document.getElementById('navHitsBadge').textContent = allHits.length;
+  document.getElementById('cntHitsBadge').textContent = sessionHits.length;
+  document.getElementById('cntCritBadge').textContent = sessionCritCount;
+  document.getElementById('cntHighBadge').textContent = sessionHighCount;
+  document.getElementById('cntOtherBadge').textContent = sessionOtherCount;
+
+  dbHits.unshift(hit);
+  if (hit.type === 'CRITICAL') dbCritCount++;
+  else if (hit.type === 'HIGH') dbHighCount++;
+  else dbOtherCount++;
+  if (document.getElementById('navHitsBadge')) document.getElementById('navHitsBadge').textContent = dbHits.length;
 
   if (currentHitsFilter === 'ALL' ||
      (currentHitsFilter === 'CRITICAL' && hit.type === 'CRITICAL') ||
@@ -1730,10 +1738,10 @@ function addHitToUI(hit) {
 }
 
 function renderHitsDbPage() {
-  if (document.getElementById('dbStatTotal')) document.getElementById('dbStatTotal').textContent = allHits.length;
-  if (document.getElementById('dbStatCrit')) document.getElementById('dbStatCrit').textContent = critHitsCount;
-  if (document.getElementById('dbStatHigh')) document.getElementById('dbStatHigh').textContent = highHitsCount;
-  if (document.getElementById('dbStatOther')) document.getElementById('dbStatOther').textContent = otherHitsCount;
+  if (document.getElementById('dbStatTotal')) document.getElementById('dbStatTotal').textContent = dbHits.length;
+  if (document.getElementById('dbStatCrit')) document.getElementById('dbStatCrit').textContent = dbCritCount;
+  if (document.getElementById('dbStatHigh')) document.getElementById('dbStatHigh').textContent = dbHighCount;
+  if (document.getElementById('dbStatOther')) document.getElementById('dbStatOther').textContent = dbOtherCount;
   filterDbTable();
 }
 
@@ -1744,7 +1752,7 @@ function filterDbTable() {
   if (!container) return;
   container.innerHTML = '';
 
-  const filtered = allHits.filter(h => {
+  const filtered = dbHits.filter(h => {
     if (sevFilter === 'CRITICAL' && h.type !== 'CRITICAL') return false;
     if (sevFilter === 'HIGH' && h.type !== 'HIGH') return false;
     if (sevFilter === 'OTHER' && (h.type === 'CRITICAL' || h.type === 'HIGH')) return false;
@@ -1776,33 +1784,29 @@ function filterDbTable() {
       <div class="hdb-cap" title="${esc(hit.capture)}">${esc(hit.capture)}</div>
       <div>${hit.size} b</div>
       <div style="color:var(--tx-dim)">${hit.ms || 0} ms</div>
-      <div><button class="btn-inspect" onclick="event.stopPropagation();openHitInspector(allHits[${allHits.indexOf(hit)}])">Détails ↗</button></div>
+      <div><button class="btn-inspect" onclick="event.stopPropagation();openHitInspector(dbHits[${dbHits.indexOf(hit)}])">Détails ↗</button></div>
     `;
     container.appendChild(row);
   });
 }
 
 function copyAllHitUrls() {
-  if (!allHits.length) {
+  const target = currentNav === 'hitsdb' ? dbHits : sessionHits;
+  if (!target.length) {
     showToast('Aucun hit disponible à copier.');
     return;
   }
-  const urls = allHits.map(h => h.full_url || (h.url + h.ep)).join('\n');
+  const urls = target.map(h => h.full_url || (h.url + h.ep)).join('\n');
   navigator.clipboard.writeText(urls);
-  showToast(`${allHits.length} URLs de hits copiées.`);
+  showToast(`${target.length} URLs de hits copiées.`);
 }
 
 function clearHitsDB() {
-  allHits = [];
-  critHitsCount = 0;
-  highHitsCount = 0;
-  otherHitsCount = 0;
-  document.getElementById('cntHitsBadge').textContent = '0';
-  document.getElementById('cntCritBadge').textContent = '0';
-  document.getElementById('cntHighBadge').textContent = '0';
-  document.getElementById('cntOtherBadge').textContent = '0';
+  dbHits = [];
+  dbCritCount = 0;
+  dbHighCount = 0;
+  dbOtherCount = 0;
   if (document.getElementById('navHitsBadge')) document.getElementById('navHitsBadge').textContent = '0';
-  document.getElementById('hitsList').innerHTML = '';
   renderHitsDbPage();
   fetch('/api/hits', { method: 'DELETE' }).catch(() => {});
   showToast('Base de données des hits réinitialisée');
@@ -1920,16 +1924,14 @@ async function startScan() {
 
   document.getElementById('hitsList').innerHTML = '';
   document.getElementById('termLog').innerHTML = '';
-  allHits = [];
-  critHitsCount = 0;
-  highHitsCount = 0;
-  otherHitsCount = 0;
+  sessionHits = [];
+  sessionCritCount = 0;
+  sessionHighCount = 0;
+  sessionOtherCount = 0;
   document.getElementById('cntHitsBadge').textContent = '0';
   document.getElementById('cntCritBadge').textContent = '0';
   document.getElementById('cntHighBadge').textContent = '0';
   document.getElementById('cntOtherBadge').textContent = '0';
-  if (document.getElementById('dbStatTotal')) document.getElementById('dbStatTotal').textContent = '0';
-  if (document.getElementById('navHitsBadge')) document.getElementById('navHitsBadge').textContent = '0';
   filterHitsView('ALL');
 
   addLog('sys', `Lancement du scan : ${storedUrls.length} URLs, ${topEpVal} endpoints par URL. ${urlBotsVal} Bots URL × ${epBotsVal} Bots Endpoints (${urlBotsVal * epBotsVal} flux max). Profil: ${browserVal.toUpperCase()}`);
@@ -2100,11 +2102,12 @@ function finishRun(statusLabel) {
 }
 
 function exportHitsJSON() {
-  if (!allHits.length) {
+  const target = currentNav === 'hitsdb' ? dbHits : sessionHits;
+  if (!target.length) {
     showToast('Aucun hit à exporter.');
     return;
   }
-  const blob = new Blob([JSON.stringify(allHits, null, 2)], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify(target, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = 'hits_' + Date.now() + '.json';
@@ -2112,11 +2115,12 @@ function exportHitsJSON() {
 }
 
 function exportHitsTXT() {
-  if (!allHits.length) {
+  const target = currentNav === 'hitsdb' ? dbHits : sessionHits;
+  if (!target.length) {
     showToast('Aucun hit à exporter.');
     return;
   }
-  const lines = allHits.map(h => `${h.time} | ${h.url}${h.ep} | ${h.status} | [${h.type}] | ${h.size}b`);
+  const lines = target.map(h => `${h.time} | ${h.url}${h.ep} | ${h.status} | [${h.type}] | ${h.size}b`);
   const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
