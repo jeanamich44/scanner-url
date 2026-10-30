@@ -55,6 +55,12 @@ class BatchRequest(BaseModel):
 
 # --------------------------------------------------
 
+class ConcurrencyRequest(BaseModel):
+    url_bots: Optional[int] = None
+    endpoint_bots: Optional[int] = None
+
+# --------------------------------------------------
+
 @app.get("/")
 @app.get("/hits")
 def serve_ui():
@@ -244,8 +250,9 @@ async def batch_scan(payload: BatchRequest):
     if not all_endpoints:
         raise HTTPException(500, "Impossible de charger endpoints.json")
 
+    full_dict_endpoints = load_endpoints()
     endpoint_basenames: Set[str] = set()
-    for ep in all_endpoints:
+    for ep in full_dict_endpoints:
         parts = ep["endpoint"].rstrip("/").split("/")
         if parts:
             endpoint_basenames.add(parts[-1].lower())
@@ -280,14 +287,14 @@ async def batch_scan(payload: BatchRequest):
         "cancel": False,
         "hits": [],
         "created_at": datetime.now().isoformat(),
+        "url_concurrency": url_concurrency,
+        "ep_concurrency": ep_concurrency,
     }
 
     def push(etype: str, data: Any):
         JOBS[jid]["events"].append({"t": etype, "d": data})
 
     async def runner():
-        nonlocal total_tasks
-
         url_queue: asyncio.Queue = asyncio.Queue()
         for t in targets:
             url_queue.put_nowait(t)
@@ -295,6 +302,7 @@ async def batch_scan(payload: BatchRequest):
         start_time = time.time()
         alive_targets = set()
         g = {
+            "total_tasks": total_tasks,
             "done": 0,
             "hits": 0,
             "bad": 0,
@@ -331,12 +339,12 @@ async def batch_scan(payload: BatchRequest):
             g["checks_ts"] = [t for t in g["checks_ts"] if now - t < 60]
             cpm = len(g["checks_ts"])
             elapsed = round(now - start_time, 1)
-            to_check = max(0, total_tasks - g["done"])
+            to_check = max(0, g["total_tasks"] - g["done"])
             time_left = round((to_check / (cpm / 60)), 1) if cpm > 0 else 0
-            pct = round((g["done"] / total_tasks * 100), 1) if total_tasks else 0
+            pct = round((g["done"] / g["total_tasks"] * 100), 1) if g["total_tasks"] else 0
 
             push("stats", {
-                "total": total_tasks,
+                "total": g["total_tasks"],
                 "done": g["done"],
                 "to_check": to_check,
                 "pct": pct,
@@ -347,8 +355,8 @@ async def batch_scan(payload: BatchRequest):
                 "elapsed": elapsed,
                 "time_left": time_left,
                 "active_bots": g["active_bots"],
-                "total_bots": url_concurrency,
-                "endpoint_bots": ep_concurrency,
+                "total_bots": JOBS[jid].get("url_concurrency", url_concurrency),
+                "endpoint_bots": JOBS[jid].get("ep_concurrency", ep_concurrency),
                 "critical": g["critical"],
                 "high": g["high"],
                 "medium": g["medium"],
@@ -396,6 +404,9 @@ async def batch_scan(payload: BatchRequest):
 
             async with AsyncSession(impersonate=impersonate_val, **proxy_arg) as session:
                 while not JOBS[jid].get("cancel"):
+                    target_ub = JOBS[jid].get("url_concurrency", url_concurrency)
+                    if wid >= target_ub:
+                        break
                     try:
                         origin, prefixes = url_queue.get_nowait()
                     except asyncio.QueueEmpty:
@@ -463,33 +474,55 @@ async def batch_scan(payload: BatchRequest):
 
                         crawl_discovered = await _crawl_tree(session, crawl_base, endpoint_basenames, 0, base_headers, timeout)
 
-                        already_covered = set()
-                        for ep in all_endpoints:
-                            already_covered.add((origin + ep["endpoint"]).lower())
-
-                        crawl_discovered = [(f_url, rel) for f_url, rel in crawl_discovered if f_url.lower() not in already_covered]
+                        unique_crawl = []
+                        seen_crawl = set()
+                        for f_url, rel in crawl_discovered:
+                            low_u = f_url.lower()
+                            if low_u not in seen_crawl:
+                                seen_crawl.add(low_u)
+                                unique_crawl.append((f_url, rel))
+                        crawl_discovered = unique_crawl
 
                         crawl_ep_count = len(crawl_discovered)
                         push("log", {"cls": "sys", "msg": f"[BOT {wid+1}] {origin} \u2192 {crawl_ep_count} fichiers sensibles supplémentaires découverts via crawl"})
 
+                    cur_ep = JOBS[jid].get("ep_concurrency", ep_concurrency)
                     push("bot", {
                         "id": wid,
                         "url": origin,
-                        "ep": f"Brute-force ({ep_concurrency} flux)...",
+                        "ep": f"Brute-force ({cur_ep} flux)...",
                         "st": "<<< PROCESSING URL >>>",
-                        "total_slots": ep_concurrency,
+                        "total_slots": cur_ep,
                     })
 
                     slot_queue = asyncio.Queue()
-                    for s in range(ep_concurrency):
+                    active_slots = set()
+                    for s in range(cur_ep):
                         slot_queue.put_nowait(s)
+                        active_slots.add(s)
+
+                    def check_expand_slots():
+                        target_eb = JOBS[jid].get("ep_concurrency", ep_concurrency)
+                        if target_eb > len(active_slots):
+                            for s in range(len(active_slots), target_eb):
+                                active_slots.add(s)
+                                slot_queue.put_nowait(s)
+
+                    def release_slot(slot_id: int):
+                        target_eb = JOBS[jid].get("ep_concurrency", ep_concurrency)
+                        if slot_id < target_eb:
+                            slot_queue.put_nowait(slot_id)
+                        else:
+                            active_slots.discard(slot_id)
 
                     async def scan_single_ep(base_u: str, ep: Dict[str, Any]):
+                        check_expand_slots()
                         slot_id = await slot_queue.get()
                         try:
                             if JOBS[jid].get("cancel"):
                                 return
 
+                            cur_slots = JOBS[jid].get("ep_concurrency", ep_concurrency)
                             ep_path = ep["endpoint"]
                             score = ep.get("score", 0)
 
@@ -499,15 +532,15 @@ async def batch_scan(payload: BatchRequest):
                                 "url": base_u,
                                 "ep": ep_path,
                                 "st": "PROCESSING",
-                                "total_slots": ep_concurrency,
+                                "total_slots": cur_slots,
                             })
 
                             push("bot", {
                                 "id": wid,
                                 "url": base_u,
                                 "ep": ep_path,
-                                "st": f"<<< REQ ({ep_concurrency} flux) >>>",
-                                "total_slots": ep_concurrency,
+                                "st": f"<<< REQ ({cur_slots} flux) >>>",
+                                "total_slots": cur_slots,
                             })
 
                             try:
@@ -556,7 +589,7 @@ async def batch_scan(payload: BatchRequest):
                                     "url": base_u,
                                     "ep": ep_path,
                                     "st": f"<<< SUCCESS: [{status_code}] HIT ({sev.upper()}) >>>",
-                                    "total_slots": ep_concurrency,
+                                    "total_slots": cur_slots,
                                 })
                             else:
                                 if status_code == 404:
@@ -566,8 +599,8 @@ async def batch_scan(payload: BatchRequest):
                                     "id": wid,
                                     "url": base_u,
                                     "ep": ep_path,
-                                    "st": f"<<< REQ ({ep_concurrency} flux) >>>",
-                                    "total_slots": ep_concurrency,
+                                    "st": f"<<< REQ ({cur_slots} flux) >>>",
+                                    "total_slots": cur_slots,
                                 })
 
                             push("ep_branch", {
@@ -577,7 +610,7 @@ async def batch_scan(payload: BatchRequest):
                                 "ep": ep_path,
                                 "st": st_branch,
                                 "status_code": status_code,
-                                "total_slots": ep_concurrency,
+                                "total_slots": cur_slots,
                             })
 
                             now_tick = time.time()
@@ -585,21 +618,23 @@ async def batch_scan(payload: BatchRequest):
                                 emit_stats_now()
 
                         finally:
-                            slot_queue.put_nowait(slot_id)
+                            release_slot(slot_id)
 
                     async def probe_crawled(full_url: str, rel_path: str):
+                        check_expand_slots()
                         slot_id = await slot_queue.get()
                         try:
                             if JOBS[jid].get("cancel"):
                                 return
 
+                            cur_slots = JOBS[jid].get("ep_concurrency", ep_concurrency)
                             push("ep_branch", {
                                 "bot_id": wid,
                                 "slot_id": slot_id,
                                 "url": origin,
                                 "ep": f"[CRAWL] {rel_path}",
                                 "st": "PROCESSING",
-                                "total_slots": ep_concurrency,
+                                "total_slots": cur_slots,
                             })
 
                             push("bot", {
@@ -607,7 +642,7 @@ async def batch_scan(payload: BatchRequest):
                                 "url": origin,
                                 "ep": f"[CRAWL] {rel_path}",
                                 "st": "<<< PROBE CRAWL >>>",
-                                "total_slots": ep_concurrency,
+                                "total_slots": cur_slots,
                             })
 
                             try:
@@ -649,7 +684,7 @@ async def batch_scan(payload: BatchRequest):
                                     "url": origin,
                                     "ep": f"[CRAWL] {rel_path}",
                                     "st": f"<<< SUCCESS: [{status_code}] HIT ({sev.upper()}) >>>",
-                                    "total_slots": ep_concurrency,
+                                    "total_slots": cur_slots,
                                 })
                             else:
                                 if status_code == 404:
@@ -663,7 +698,7 @@ async def batch_scan(payload: BatchRequest):
                                 "ep": f"[CRAWL] {rel_path}",
                                 "st": st_branch,
                                 "status_code": status_code,
-                                "total_slots": ep_concurrency,
+                                "total_slots": cur_slots,
                             })
 
                             now_tick = time.time()
@@ -671,52 +706,108 @@ async def batch_scan(payload: BatchRequest):
                                 emit_stats_now()
 
                         finally:
-                            slot_queue.put_nowait(slot_id)
+                            release_slot(slot_id)
 
-                    bf_tasks = []
-                    for ep in all_endpoints:
-                        bf_tasks.append(scan_single_ep(origin, ep))
-
-                    crawl_tasks = []
+                    tested_crawl_urls = set()
                     if crawl_discovered:
-                        total_tasks += len(crawl_discovered)
+                        g["total_tasks"] += len(crawl_discovered)
+                        emit_stats_now()
+                        crawl_tasks = []
                         for f_url, rel in crawl_discovered:
+                            tested_crawl_urls.add(f_url.lower())
                             crawl_tasks.append(probe_crawled(f_url, rel))
+                        await asyncio.gather(*crawl_tasks)
 
-                    await asyncio.gather(*(bf_tasks + crawl_tasks))
+                    if not JOBS[jid].get("cancel"):
+                        bf_tasks = []
+                        for ep in all_endpoints:
+                            full_ep_url = (origin.rstrip("/") + ep["endpoint"]).lower()
+                            if full_ep_url not in tested_crawl_urls:
+                                bf_tasks.append(scan_single_ep(origin, ep))
+                        if bf_tasks:
+                            await asyncio.gather(*bf_tasks)
 
                     url_queue.task_done()
                     g["active_bots"] = max(0, g["active_bots"] - 1)
 
-                    for s in range(ep_concurrency):
+                    end_slots = JOBS[jid].get("ep_concurrency", ep_concurrency)
+                    for s in range(max(end_slots, len(active_slots))):
                         push("ep_branch", {
                             "bot_id": wid,
                             "slot_id": s,
                             "url": origin,
                             "ep": "—",
                             "st": "IDLE",
-                            "total_slots": ep_concurrency,
+                            "total_slots": end_slots,
                         })
 
+                end_slots = JOBS[jid].get("ep_concurrency", ep_concurrency)
                 push("bot", {
                     "id": wid,
                     "url": "—",
                     "ep": "—",
                     "st": "<<< IDLE >>>",
-                    "total_slots": ep_concurrency,
+                    "total_slots": end_slots,
                 })
-                for s in range(ep_concurrency):
+                for s in range(end_slots):
                     push("ep_branch", {
                         "bot_id": wid,
                         "slot_id": s,
                         "url": "—",
                         "ep": "—",
                         "st": "IDLE",
-                        "total_slots": ep_concurrency,
+                        "total_slots": end_slots,
                     })
 
-        workers = [asyncio.create_task(url_worker(i)) for i in range(url_concurrency)]
-        await asyncio.gather(*workers)
+        worker_tasks: Dict[int, asyncio.Task] = {}
+
+        def spawn_worker(w: int):
+            t = asyncio.create_task(url_worker(w))
+            worker_tasks[w] = t
+            return t
+
+        def set_concurrency(new_ub: Optional[int], new_eb: Optional[int]):
+            if new_ub is not None:
+                target_ub = max(1, min(new_ub, 300))
+                old_ub = JOBS[jid].get("url_concurrency", url_concurrency)
+                JOBS[jid]["url_concurrency"] = target_ub
+                if target_ub > old_ub:
+                    for w in range(target_ub):
+                        if w not in worker_tasks or worker_tasks[w].done():
+                            spawn_worker(w)
+                push("log", {
+                    "cls": "sys",
+                    "msg": f"Concurrence ajustée en direct : {target_ub} Bots URL (précédent : {old_ub})"
+                })
+                emit_stats_now()
+
+            if new_eb is not None:
+                target_eb = max(1, min(new_eb, 20))
+                old_eb = JOBS[jid].get("ep_concurrency", ep_concurrency)
+                JOBS[jid]["ep_concurrency"] = target_eb
+                push("log", {
+                    "cls": "sys",
+                    "msg": f"Flux Endpoints ajustés en direct : {target_eb} Ep/URL (précédent : {old_eb})"
+                })
+                emit_stats_now()
+
+        JOBS[jid]["set_concurrency"] = set_concurrency
+
+        for i in range(url_concurrency):
+            spawn_worker(i)
+
+        while not JOBS[jid].get("cancel"):
+            all_done = all(t.done() for t in list(worker_tasks.values()))
+            if all_done and url_queue.empty():
+                break
+            await asyncio.sleep(0.08)
+
+        if JOBS[jid].get("cancel"):
+            for t in list(worker_tasks.values()):
+                if not t.done():
+                    t.cancel()
+
+        await asyncio.gather(*worker_tasks.values(), return_exceptions=True)
 
         emit_stats_now()
         is_cancelled = JOBS[jid].get("cancel", False)
@@ -730,6 +821,24 @@ async def batch_scan(payload: BatchRequest):
 
     asyncio.create_task(runner())
     return {"job_id": jid}
+
+# --------------------------------------------------
+
+@app.post("/api/jobs/{jid}/concurrency")
+@app.post("/concurrency/{jid}")
+async def update_concurrency(jid: str, payload: ConcurrencyRequest):
+    job = JOBS.get(jid)
+    if not job:
+        raise HTTPException(404, "Job introuvable")
+    fn = job.get("set_concurrency")
+    if fn and job.get("status") == "running":
+        fn(payload.url_bots, payload.endpoint_bots)
+        return {
+            "status": "ok",
+            "url_bots": job.get("url_concurrency"),
+            "endpoint_bots": job.get("ep_concurrency"),
+        }
+    return {"status": "ignored"}
 
 # --------------------------------------------------
 

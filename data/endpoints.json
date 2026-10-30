@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "total_endpoints": 880,
+    "total_endpoints": 897,
     "total_hits": 11316,
     "max_score": 386,
     "min_score": 1,
@@ -14,6 +14,10 @@
     {
       "endpoint": "/.env",
       "score": 373
+    },
+    {
+      "endpoint": "/env",
+      "score": 350
     },
     {
       "endpoint": "/wp-admin/install.php",
@@ -212,6 +216,10 @@
       "score": 42
     },
     {
+      "endpoint": "/composer.json",
+      "score": 42
+    },
+    {
       "endpoint": "/.env.php",
       "score": 41
     },
@@ -228,7 +236,27 @@
       "score": 38
     },
     {
+      "endpoint": "/dump.sql",
+      "score": 38
+    },
+    {
+      "endpoint": "/backup.sql",
+      "score": 38
+    },
+    {
+      "endpoint": "/db.sql",
+      "score": 37
+    },
+    {
       "endpoint": "/wp/.env",
+      "score": 36
+    },
+    {
+      "endpoint": "/package.json",
+      "score": 36
+    },
+    {
+      "endpoint": "/docker-compose.yml",
       "score": 36
     },
     {
@@ -248,6 +276,18 @@
       "score": 35
     },
     {
+      "endpoint": "/web.config",
+      "score": 35
+    },
+    {
+      "endpoint": "/actuator/env",
+      "score": 35
+    },
+    {
+      "endpoint": "/phpinfo.php",
+      "score": 35
+    },
+    {
       "endpoint": "/config.env",
       "score": 34
     },
@@ -257,6 +297,10 @@
     },
     {
       "endpoint": "/crm/.env",
+      "score": 34
+    },
+    {
+      "endpoint": "/backup.zip",
       "score": 34
     },
     {
@@ -280,6 +324,14 @@
       "score": 32
     },
     {
+      "endpoint": "/.svn/entries",
+      "score": 32
+    },
+    {
+      "endpoint": "/.hg/dirstate",
+      "score": 32
+    },
+    {
       "endpoint": "/new/.env",
       "score": 31
     },
@@ -293,6 +345,10 @@
     },
     {
       "endpoint": "/storage/.env",
+      "score": 31
+    },
+    {
+      "endpoint": "/Dockerfile",
       "score": 31
     },
     {
@@ -317,6 +373,18 @@
     },
     {
       "endpoint": "/administrator/.env",
+      "score": 30
+    },
+    {
+      "endpoint": "/telescope/",
+      "score": 30
+    },
+    {
+      "endpoint": "/server-status",
+      "score": 30
+    },
+    {
+      "endpoint": "/site.tar.gz",
       "score": 30
     },
     {

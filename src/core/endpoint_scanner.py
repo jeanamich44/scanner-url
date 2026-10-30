@@ -55,11 +55,28 @@ SENSITIVE_DEFINITIONS = [
 
 # --------------------------------------------------
 
+def _sort_endpoint(ep: Dict[str, Any]):
+    val = ep.get("score")
+    if isinstance(val, str):
+        v = val.strip().lower()
+        if v.startswith("top-") or v.startswith("top"):
+            num = v.replace("top-", "").replace("top", "").strip()
+            try:
+                return (0, float(num))
+            except ValueError:
+                pass
+    elif isinstance(val, (int, float)):
+        return (1, -float(val))
+    return (2, 0.0)
+
+# --------------------------------------------------
+
 def load_endpoints(path: Optional[Path] = None, top_n: Optional[int] = None) -> List[Dict[str, Any]]:
     p = path or ENDPOINTS_PATH
     with open(p, "r", encoding="utf-8") as f:
         data = json.load(f)
     eps = data.get("endpoints", [])
+    eps.sort(key=_sort_endpoint)
     if top_n and top_n > 0:
         eps = eps[:top_n]
     return eps
@@ -129,7 +146,7 @@ async def probe_fast(
     session: AsyncSession,
     base_url: str,
     endpoint: str,
-    score: int,
+    score: Any,
     timeout: float,
     use_bypass: bool,
     use_mutations: bool,

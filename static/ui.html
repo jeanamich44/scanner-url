@@ -483,13 +483,13 @@ body{
     <div class="ctrl-bots" title="Nombre d'URLs traitées simultanément">
       <span>Bots URL:</span>
       <span id="txtUrlBots">10</span>
-      <input type="range" id="rngUrlBots" min="1" max="300" value="10" oninput="document.getElementById('txtUrlBots').textContent=this.value;reinitBots(parseInt(this.value));updateTotalBotsLabel()">
+      <input type="range" id="rngUrlBots" min="1" max="300" value="10" oninput="onUrlBotsChanged(this.value)">
     </div>
 
     <div class="ctrl-bots" title="Nombre d'endpoints testés en parallèle par URL">
       <span>Bots Ep:</span>
       <span id="txtEpBots">1</span>
-      <input type="range" id="rngEpBots" min="1" max="20" value="1" oninput="document.getElementById('txtEpBots').textContent=this.value;updateTotalBotsLabel();reinitBots(parseInt(document.getElementById('rngUrlBots').value))">
+      <input type="range" id="rngEpBots" min="1" max="20" value="1" oninput="onEpBotsChanged(this.value)">
     </div>
 
     <div class="ctrl-radios">
@@ -597,7 +597,7 @@ body{
         <div class="cfg-row">
           <div style="cursor:pointer;display:inline-flex;align-items:center;gap:6px" onclick="openModal('configs')" title="Modifier la configuration des endpoints">
             <span>Select CFG:</span>
-            <span class="cfg-badge clickable" id="lblCfgName">Endpoints.json (880)</span>
+            <span class="cfg-badge clickable" id="lblCfgName">Endpoints.json (897)</span>
           </div>
           <div style="cursor:pointer;display:inline-flex;align-items:center;gap:6px" onclick="openModal('wordlists')" title="Gérer la liste des URLs cibles">
             <span>Select List:</span>
@@ -605,7 +605,7 @@ body{
           </div>
           <div style="display:inline-flex;align-items:center;gap:6px">
             <span>Total Requêtes:</span>
-            <span class="cfg-badge" id="lblTotalCalculated" style="color:var(--cyan);font-weight:700">0 (0 URL &times; 880 Ep)</span>
+            <span class="cfg-badge" id="lblTotalCalculated" style="color:var(--cyan);font-weight:700">0 (0 URL &times; 897 Ep)</span>
           </div>
         </div>
         <div class="term-log" id="termLog">
@@ -757,7 +757,7 @@ body{
             <option value="100">Top 100 les plus fréquents</option>
             <option value="200">Top 200</option>
             <option value="500">Top 500</option>
-            <option value="880" selected>Tous les 880 endpoints</option>
+            <option value="897" selected>Tous les 897 endpoints</option>
           </select>
           <div id="cfgVolumeHint" style="margin-top:4px;font-size:10px;color:var(--cyan);font-family:Consolas,monospace">Volume prévu : 0 requête</div>
         </div>
@@ -1142,7 +1142,7 @@ function updateEngineBadge() {
 function updateUrlsCount() {
   const text = document.getElementById('taUrls').value.trim();
   const count = text ? text.split('\n').filter(l => l.trim()).length : 0;
-  const topEp = parseInt(document.getElementById('selTopEndpoints') ? document.getElementById('selTopEndpoints').value : 880) || 880;
+  const topEp = parseInt(document.getElementById('selTopEndpoints') ? document.getElementById('selTopEndpoints').value : 897) || 897;
   const total = count * topEp;
   document.getElementById('txtUrlsCount').textContent = count > 0 
     ? `${count} URLs détectées • ${total.toLocaleString('fr-FR')} requêtes prévues (${topEp} ep/u)` 
@@ -1152,7 +1152,7 @@ function updateUrlsCount() {
 function updateVolumeCalculation() {
   const urlCount = storedUrls.length;
   const sel = document.getElementById('selTopEndpoints');
-  const topEp = parseInt(sel ? sel.value : 880) || 880;
+  const topEp = parseInt(sel ? sel.value : 897) || 897;
   const total = urlCount * topEp;
 
   const badge = document.getElementById('lblTotalCalculated');
@@ -1228,7 +1228,7 @@ function saveUrls() {
   document.getElementById('stTotalUrls').textContent = storedUrls.length;
   closeModal('wordlists');
   updateVolumeCalculation();
-  const topEp = parseInt(document.getElementById('selTopEndpoints') ? document.getElementById('selTopEndpoints').value : 880) || 880;
+  const topEp = parseInt(document.getElementById('selTopEndpoints') ? document.getElementById('selTopEndpoints').value : 897) || 897;
   const total = storedUrls.length * topEp;
   addLog('sys', 'Wordlist chargée : ' + storedUrls.length + ' URLs prêtes pour analyse (' + total.toLocaleString('fr-FR') + ' requêtes prévues).');
 }
@@ -1239,6 +1239,38 @@ function updateTotalBotsLabel() {
   if (document.getElementById('inpUrlBotsCfg')) document.getElementById('inpUrlBotsCfg').value = ub;
   if (document.getElementById('inpEpBotsCfg')) document.getElementById('inpEpBotsCfg').value = eb;
   document.getElementById('stBotsUsage').textContent = `0 / ${ub} (${eb} ep/u)`;
+}
+
+let liveConcurrencyTimer = null;
+
+function notifyBackendConcurrency(ub, eb) {
+  if (!isRunning || !currentJobId) return;
+  clearTimeout(liveConcurrencyTimer);
+  liveConcurrencyTimer = setTimeout(() => {
+    fetch('/api/jobs/' + currentJobId + '/concurrency', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url_bots: ub, endpoint_bots: eb })
+    }).catch(() => {});
+  }, 100);
+}
+
+function onUrlBotsChanged(val) {
+  const ub = parseInt(val) || 1;
+  document.getElementById('txtUrlBots').textContent = ub;
+  if (document.getElementById('inpUrlBotsCfg')) document.getElementById('inpUrlBotsCfg').value = ub;
+  const eb = parseInt(document.getElementById('rngEpBots') ? document.getElementById('rngEpBots').value : 1) || 1;
+  adjustBotsStructure(ub, eb);
+  notifyBackendConcurrency(ub, eb);
+}
+
+function onEpBotsChanged(val) {
+  const eb = parseInt(val) || 1;
+  document.getElementById('txtEpBots').textContent = eb;
+  if (document.getElementById('inpEpBotsCfg')) document.getElementById('inpEpBotsCfg').value = eb;
+  const ub = parseInt(document.getElementById('rngUrlBots') ? document.getElementById('rngUrlBots').value : 10) || 10;
+  adjustBotsStructure(ub, eb);
+  notifyBackendConcurrency(ub, eb);
 }
 
 function syncBotsFromCfg() {
@@ -1252,83 +1284,149 @@ function syncBotsFromCfg() {
     document.getElementById('rngEpBots').value = eb;
     document.getElementById('txtEpBots').textContent = eb;
   }
-  reinitBots(ub);
-  updateTotalBotsLabel();
+  adjustBotsStructure(ub, eb);
+  notifyBackendConcurrency(ub, eb);
 }
 
 let allBranchesExpanded = false;
 
-function reinitBots(count) {
-  activeBotsCount = count;
-  const container = document.getElementById('botRows');
-  if (!container) return;
-  container.innerHTML = '';
-  botElements = {};
+function createBotRow(container, i, epCount) {
+  const row = document.createElement('div');
+  row.className = 'bot-row';
+  row.id = 'botRow_' + i;
 
-  const epCount = parseInt(document.getElementById('rngEpBots') ? document.getElementById('rngEpBots').value : 1) || 1;
-  const btnToggle = document.getElementById('btnToggleAllBranches');
-  if (btnToggle) {
-    btnToggle.style.display = epCount > 1 ? 'inline-block' : 'none';
-    btnToggle.textContent = 'DÉPLIER TOUT';
+  const colId = document.createElement('div');
+  colId.className = 'bot-col-id';
+  colId.textContent = (i + 1);
+
+  const colData = document.createElement('div');
+  colData.className = 'bot-col-data';
+  colData.textContent = '—';
+
+  const colEp = document.createElement('div');
+  colEp.className = 'bot-col-ep';
+
+  const epText = document.createElement('span');
+  epText.className = 'ep-text';
+  epText.textContent = '—';
+  colEp.appendChild(epText);
+
+  let pill = null;
+  if (epCount > 1) {
+    pill = document.createElement('span');
+    pill.className = 'ep-branch-pill';
+    pill.id = 'pillBranch_' + i;
+    pill.innerHTML = `${epCount} flux <span id="pillArrow_${i}">▾</span>`;
+    pill.title = 'Déplier / replier les flux parallèles de ce bot';
+    pill.onclick = (e) => {
+      e.stopPropagation();
+      toggleBotBranches(i);
+    };
+    colEp.appendChild(pill);
+    row.onclick = () => toggleBotBranches(i);
   }
-  allBranchesExpanded = false;
 
-  for (let i = 0; i < count; i++) {
-    const row = document.createElement('div');
-    row.className = 'bot-row';
-    row.id = 'botRow_' + i;
+  const colSt = document.createElement('div');
+  colSt.className = 'bot-col-st st-IDLE';
+  colSt.textContent = '<<< IDLE >>>';
 
-    const colId = document.createElement('div');
-    colId.className = 'bot-col-id';
-    colId.textContent = (i + 1);
+  row.appendChild(colId);
+  row.appendChild(colData);
+  row.appendChild(colEp);
+  row.appendChild(colSt);
+  container.appendChild(row);
 
-    const colData = document.createElement('div');
-    colData.className = 'bot-col-data';
-    colData.textContent = '—';
+  let branchContainer = null;
+  let branches = [];
 
-    const colEp = document.createElement('div');
-    colEp.className = 'bot-col-ep';
+  if (epCount > 1) {
+    branchContainer = document.createElement('div');
+    branchContainer.className = 'bot-branches-container';
+    branchContainer.id = 'branchContainer_' + i;
+    branchContainer.style.display = allBranchesExpanded ? 'flex' : 'none';
 
-    const epText = document.createElement('span');
-    epText.className = 'ep-text';
-    epText.textContent = '—';
-    colEp.appendChild(epText);
+    for (let s = 0; s < epCount; s++) {
+      const bRow = document.createElement('div');
+      bRow.className = 'bot-branch-row';
+      bRow.id = `branchRow_${i}_${s}`;
 
-    let pill = null;
-    if (epCount > 1) {
-      pill = document.createElement('span');
+      const bConn = document.createElement('div');
+      bConn.className = 'branch-connector';
+      bConn.textContent = (s === epCount - 1) ? `└── Ep #${s + 1}` : `├── Ep #${s + 1}`;
+
+      const bEp = document.createElement('div');
+      bEp.className = 'branch-col-ep';
+      bEp.id = `branchEp_${i}_${s}`;
+      bEp.textContent = '—';
+
+      const bSt = document.createElement('div');
+      bSt.className = 'branch-col-st st-IDLE';
+      bSt.id = `branchSt_${i}_${s}`;
+      bSt.textContent = '<<< IDLE >>>';
+
+      bRow.appendChild(bConn);
+      bRow.appendChild(bEp);
+      bRow.appendChild(bSt);
+      branchContainer.appendChild(bRow);
+
+      branches.push({ row: bRow, ep: bEp, st: bSt });
+    }
+    container.appendChild(branchContainer);
+  }
+
+  botElements[i] = {
+    row,
+    colData,
+    colEp,
+    epText,
+    pill,
+    colSt,
+    branchContainer,
+    branches,
+    expanded: allBranchesExpanded
+  };
+}
+
+function updateBotBranchesStructure(i, epCount) {
+  const b = botElements[i];
+  if (!b) return;
+
+  if (epCount > 1) {
+    if (!b.pill) {
+      const pill = document.createElement('span');
       pill.className = 'ep-branch-pill';
       pill.id = 'pillBranch_' + i;
-      pill.innerHTML = `${epCount} flux <span id="pillArrow_${i}">▾</span>`;
+      pill.innerHTML = `${epCount} flux <span id="pillArrow_${i}">${b.expanded ? '▴' : '▾'}</span>`;
       pill.title = 'Déplier / replier les flux parallèles de ce bot';
       pill.onclick = (e) => {
         e.stopPropagation();
         toggleBotBranches(i);
       };
-      colEp.appendChild(pill);
-      row.onclick = () => toggleBotBranches(i);
+      b.colEp.appendChild(pill);
+      b.row.onclick = () => toggleBotBranches(i);
+      b.pill = pill;
+    } else {
+      b.pill.innerHTML = `${epCount} flux <span id="pillArrow_${i}">${b.expanded ? '▴' : '▾'}</span>`;
+      b.pill.style.display = 'inline-flex';
     }
 
-    const colSt = document.createElement('div');
-    colSt.className = 'bot-col-st st-IDLE';
-    colSt.textContent = '<<< IDLE >>>';
-
-    row.appendChild(colId);
-    row.appendChild(colData);
-    row.appendChild(colEp);
-    row.appendChild(colSt);
-    container.appendChild(row);
-
-    let branchContainer = null;
-    let branches = [];
-
-    if (epCount > 1) {
-      branchContainer = document.createElement('div');
+    if (!b.branchContainer) {
+      const branchContainer = document.createElement('div');
       branchContainer.className = 'bot-branches-container';
       branchContainer.id = 'branchContainer_' + i;
-      branchContainer.style.display = 'none';
+      branchContainer.style.display = b.expanded ? 'flex' : 'none';
+      if (b.row.nextSibling) {
+        b.row.parentNode.insertBefore(branchContainer, b.row.nextSibling);
+      } else {
+        b.row.parentNode.appendChild(branchContainer);
+      }
+      b.branchContainer = branchContainer;
+      b.branches = [];
+    }
 
-      for (let s = 0; s < epCount; s++) {
+    const curLen = b.branches.length;
+    if (epCount > curLen) {
+      for (let s = curLen; s < epCount; s++) {
         const bRow = document.createElement('div');
         bRow.className = 'bot-branch-row';
         bRow.id = `branchRow_${i}_${s}`;
@@ -1350,27 +1448,84 @@ function reinitBots(count) {
         bRow.appendChild(bConn);
         bRow.appendChild(bEp);
         bRow.appendChild(bSt);
-        branchContainer.appendChild(bRow);
+        b.branchContainer.appendChild(bRow);
 
-        branches.push({ row: bRow, ep: bEp, st: bSt });
+        b.branches.push({ row: bRow, ep: bEp, st: bSt });
       }
-      container.appendChild(branchContainer);
+    } else if (epCount < curLen) {
+      for (let s = curLen - 1; s >= epCount; s--) {
+        const item = b.branches[s];
+        if (item && item.row && item.row.parentNode) {
+          item.row.parentNode.removeChild(item.row);
+        }
+        b.branches.pop();
+      }
     }
 
-    botElements[i] = {
-      row,
-      colData,
-      colEp,
-      epText,
-      pill,
-      colSt,
-      branchContainer,
-      branches,
-      expanded: false
-    };
+    for (let s = 0; s < b.branches.length; s++) {
+      const conn = b.branches[s].row.querySelector('.branch-connector');
+      if (conn) {
+        conn.textContent = (s === b.branches.length - 1) ? `└── Ep #${s + 1}` : `├── Ep #${s + 1}`;
+      }
+    }
+  } else {
+    if (b.pill) {
+      b.pill.style.display = 'none';
+    }
+    if (b.branchContainer) {
+      b.branchContainer.style.display = 'none';
+    }
+    b.row.onclick = null;
+  }
+}
+
+function adjustBotsStructure(urlCount, epCount) {
+  activeBotsCount = urlCount;
+  const container = document.getElementById('botRows');
+  if (!container) return;
+
+  const btnToggle = document.getElementById('btnToggleAllBranches');
+  if (btnToggle) {
+    btnToggle.style.display = epCount > 1 ? 'inline-block' : 'none';
   }
 
-  document.getElementById('stBotsUsage').textContent = `0 / ${count} (${epCount} ep/u)`;
+  const currentCount = Object.keys(botElements).length;
+  if (urlCount > currentCount) {
+    for (let i = currentCount; i < urlCount; i++) {
+      createBotRow(container, i, epCount);
+    }
+  } else if (urlCount < currentCount) {
+    for (let i = urlCount; i < currentCount; i++) {
+      const b = botElements[i];
+      if (b) {
+        if (b.branchContainer && b.branchContainer.parentNode) {
+          b.branchContainer.parentNode.removeChild(b.branchContainer);
+        }
+        if (b.row && b.row.parentNode) {
+          b.row.parentNode.removeChild(b.row);
+        }
+        delete botElements[i];
+      }
+    }
+  }
+
+  for (let i in botElements) {
+    updateBotBranchesStructure(parseInt(i), epCount);
+  }
+
+  updateTotalBotsLabel();
+}
+
+function reinitBots(count) {
+  const container = document.getElementById('botRows');
+  if (!container) return;
+  container.innerHTML = '';
+  botElements = {};
+  allBranchesExpanded = false;
+  const btnToggle = document.getElementById('btnToggleAllBranches');
+  if (btnToggle) btnToggle.textContent = 'DÉPLIER TOUT';
+  const epCount = parseInt(document.getElementById('rngEpBots') ? document.getElementById('rngEpBots').value : 1) || 1;
+  adjustBotsStructure(count, epCount);
 }
 
 function toggleBotBranches(wid) {
@@ -1412,8 +1567,18 @@ function toggleAllBranches() {
 }
 
 function updateBranchState(botId, slotId, ep, statusStr, totalSlots) {
-  const b = botElements[botId];
+  let b = botElements[botId];
+  if (!b) {
+    const container = document.getElementById('botRows');
+    const epCount = totalSlots || (parseInt(document.getElementById('rngEpBots') ? document.getElementById('rngEpBots').value : 1) || 1);
+    createBotRow(container, botId, epCount);
+    b = botElements[botId];
+  }
   if (!b) return;
+
+  if (!b.branches || !b.branches[slotId]) {
+    updateBotBranchesStructure(botId, totalSlots || (slotId + 1));
+  }
 
   if (b.branches && b.branches[slotId]) {
     const br = b.branches[slotId];
@@ -1436,7 +1601,13 @@ function updateBranchState(botId, slotId, ep, statusStr, totalSlots) {
 }
 
 function updateBotState(id, url, ep, statusStr) {
-  const b = botElements[id];
+  let b = botElements[id];
+  if (!b) {
+    const container = document.getElementById('botRows');
+    const epCount = parseInt(document.getElementById('rngEpBots') ? document.getElementById('rngEpBots').value : 1) || 1;
+    createBotRow(container, id, epCount);
+    b = botElements[id];
+  }
   if (!b) return;
 
   b.colData.textContent = url || '—';
@@ -1723,7 +1894,7 @@ async function startScan() {
 
   const urlBotsVal = parseInt(document.getElementById('rngUrlBots') ? document.getElementById('rngUrlBots').value : 10) || 10;
   const epBotsVal = parseInt(document.getElementById('rngEpBots') ? document.getElementById('rngEpBots').value : 1) || 1;
-  const topEpVal = parseInt(document.getElementById('selTopEndpoints').value) || 880;
+  const topEpVal = parseInt(document.getElementById('selTopEndpoints').value) || 897;
   const timeoutVal = parseFloat(document.getElementById('inpTimeout').value) || 5.0;
 
   const proxRad = document.querySelector('input[name="radProx"]:checked');
