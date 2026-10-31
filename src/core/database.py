@@ -130,7 +130,39 @@ def fetch_db_stats() -> Dict[str, int]:
 def delete_all_hits() -> None:
     conn = get_connection()
     try:
-        conn.execute("DELETE FROM hits")
+        cur = conn.cursor()
+        cur.execute("DELETE FROM hits")
+        try:
+            cur.execute("DELETE FROM sqlite_sequence WHERE name = 'hits'")
+        except Exception:
+            pass
         conn.commit()
+    finally:
+        conn.close()
+
+# --------------------------------------------------
+
+def delete_hit_by_id(hit_id: int) -> bool:
+    conn = get_connection()
+    try:
+        cur = conn.cursor()
+        cur.execute("DELETE FROM hits WHERE id = ?", (hit_id,))
+        conn.commit()
+        return cur.rowcount > 0
+    finally:
+        conn.close()
+
+# --------------------------------------------------
+
+def delete_hits_by_ids(hit_ids: List[int]) -> int:
+    if not hit_ids:
+        return 0
+    conn = get_connection()
+    try:
+        cur = conn.cursor()
+        placeholders = ",".join("?" for _ in hit_ids)
+        cur.execute(f"DELETE FROM hits WHERE id IN ({placeholders})", hit_ids)
+        conn.commit()
+        return cur.rowcount
     finally:
         conn.close()

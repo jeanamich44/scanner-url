@@ -22,7 +22,14 @@ from src.core.scanner import UrlScanner
 from src.core.endpoint_scanner import load_endpoints, probe_fast, _analyze_resp
 from src.core.browser_profiles import get_browser_profile
 from src.core.proxy_manager import ProxyManager, format_proxy_line
-from src.core.database import save_hit, fetch_all_hits, fetch_db_stats, delete_all_hits
+from src.core.database import (
+    save_hit,
+    fetch_all_hits,
+    fetch_db_stats,
+    delete_all_hits,
+    delete_hit_by_id,
+    delete_hits_by_ids,
+)
 
 # --------------------------------------------------
 
@@ -61,10 +68,23 @@ class ConcurrencyRequest(BaseModel):
 
 # --------------------------------------------------
 
+class DeleteBatchRequest(BaseModel):
+    ids: List[int]
+
+# --------------------------------------------------
+
 @app.get("/")
-@app.get("/hits")
 def serve_ui():
     p = BASE_DIR / "static" / "ui.html"
+    if not p.exists():
+        raise HTTPException(404)
+    return FileResponse(p, media_type="text/html")
+
+# --------------------------------------------------
+
+@app.get("/hits")
+def serve_hits_ui():
+    p = BASE_DIR / "static" / "hits.html"
     if not p.exists():
         raise HTTPException(404)
     return FileResponse(p, media_type="text/html")
@@ -863,7 +883,25 @@ def get_all_hits():
 @app.delete("/api/hits")
 def clear_all_hits():
     delete_all_hits()
+    for j in JOBS.values():
+        j["hits"] = []
     return {"status": "cleared"}
+
+# --------------------------------------------------
+
+@app.delete("/api/hits/{hit_id}")
+def delete_single_hit(hit_id: int):
+    ok = delete_hit_by_id(hit_id)
+    if not ok:
+        raise HTTPException(404, "Hit introuvable")
+    return {"status": "deleted", "id": hit_id}
+
+# --------------------------------------------------
+
+@app.post("/api/hits/delete-batch")
+def delete_hits_batch(payload: DeleteBatchRequest):
+    count = delete_hits_by_ids(payload.ids)
+    return {"status": "deleted", "count": count}
 
 # --------------------------------------------------
 

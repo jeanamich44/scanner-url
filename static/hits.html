@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>URL Scanner - Hits Database</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;user-select:none}
+:root{
+  --bg:#121214;--s1:#18181c;--s2:#1e1e24;--s3:#26262e;--brd:#2c2c36;
+  --tx:#e2e2ec;--tx-dim:#848496;--tx-faint:#484858;
+  --acc:#00b4d8;--acc-glow:rgba(0,180,216,0.3);
+  --grn:#00d26a;--yl:#ffc107;--red:#ff3b5c;--ora:#ff7043;--pur:#9c27b0;
+  --cyan:#00d2d3;
+}
+body{
+  font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg);color:var(--tx);height:100vh;overflow:hidden;
+}
+
+.app-window{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+
+.win-titlebar{
+  background:#0d0d0f;border-bottom:1px solid #1c1c22;
+  display:flex;align-items:center;justify-content:space-between;padding:0 10px;font-size:11px;color:var(--tx-dim);
+  height:28px;flex-shrink:0;
+}
+.win-titlebar .logo{display:flex;align-items:center;gap:6px;font-weight:600;color:#c0c0d2}
+.win-titlebar .logo svg{fill:#ff9800}
+
+.navbar{
+  background:var(--s1);border-bottom:1px solid var(--brd);
+  display:flex;align-items:center;padding:0 8px;gap:4px;
+  height:38px;flex-shrink:0;
+}
+.nav-item{
+  display:flex;align-items:center;gap:6px;padding:6px 12px;font-size:11px;color:var(--tx-dim);
+  cursor:pointer;border-radius:3px;font-weight:500;transition:all 0.1s;text-decoration:none;
+}
+.nav-item:hover{background:var(--s2);color:var(--tx)}
+.nav-item.active{color:var(--acc);background:rgba(0,180,216,0.08)}
+.nav-item svg{width:13px;height:13px;fill:currentColor}
+.nav-badge{
+  background:#282834;color:var(--tx);font-size:9.5px;padding:1px 5px;
+  border-radius:10px;font-family:Consolas,monospace;
+}
+
+.hitsdb-page{
+  flex:1;display:flex;flex-direction:column;overflow:hidden;background:#0d0d10;
+}
+.hitsdb-topbar{
+  background:#141418;border-bottom:1px solid var(--brd);display:flex;align-items:center;
+  padding:0 12px;gap:12px;height:46px;flex-shrink:0;overflow-x:auto;white-space:nowrap;
+}
+.hitsdb-title{
+  display:flex;align-items:center;gap:6px;font-weight:700;font-size:11.5px;color:#fff;letter-spacing:0.4px;
+}
+.hitsdb-title svg{width:14px;height:14px;fill:var(--acc)}
+
+.hitsdb-stats{display:flex;align-items:center;gap:6px;font-size:10.5px}
+.hdb-stat{background:#1a1a22;border:1px solid var(--brd);padding:3px 8px;border-radius:2px;color:var(--tx-dim);font-family:Consolas,monospace}
+.hdb-stat strong{color:#fff}
+.stat-crit strong{color:var(--red)}
+.stat-high strong{color:var(--ora)}
+.stat-med strong{color:var(--yl)}
+.stat-low strong{color:var(--cyan)}
+.stat-other strong{color:var(--tx-dim)}
+
+.hitsdb-ctrls{
+  background:#111116;border-bottom:1px solid var(--brd);display:flex;align-items:center;
+  padding:0 12px;gap:10px;height:42px;flex-shrink:0;overflow-x:auto;white-space:nowrap;
+}
+.hitsdb-search{position:relative;display:flex;align-items:center}
+.hitsdb-search svg{position:absolute;left:8px;width:12px;height:12px;fill:var(--tx-dim)}
+.hitsdb-search input{
+  background:#0d0d10;border:1px solid var(--brd);color:#fff;border-radius:2px;
+  padding:5px 8px 5px 26px;font-size:11px;width:340px;outline:none;
+}
+.hitsdb-search input:focus{border-color:var(--acc)}
+
+.hitsdb-filters select{
+  background:#0d0d10;border:1px solid var(--brd);color:var(--tx);border-radius:2px;
+  padding:5px 8px;font-size:11px;outline:none;cursor:pointer;
+}
+.hitsdb-filters select:focus{border-color:var(--acc)}
+
+.hitsdb-actions{display:flex;align-items:center;gap:6px;margin-left:auto}
+
+.btn-act{
+  background:#1a1a22;border:1px solid var(--brd);color:var(--tx);
+  padding:4px 9px;border-radius:2px;font-size:10.5px;cursor:pointer;
+  display:inline-flex;align-items:center;gap:5px;transition:all 0.15s;outline:none;white-space:nowrap;
+}
+.btn-act:hover{background:#252530;color:#fff;border-color:#555}
+.btn-act:disabled{opacity:0.4;cursor:not-allowed}
+.btn-act svg{width:11px;height:11px;fill:currentColor}
+.btn-danger{color:var(--red);border-color:rgba(255,59,92,0.3)}
+.btn-danger:hover{background:#2a1218;border-color:var(--red);color:#fff}
+.btn-primary{background:#00344a;color:var(--acc);border-color:var(--acc)}
+.btn-primary:hover{background:var(--acc);color:#000}
+.btn-act.active{background:#00344a;color:var(--acc);border-color:var(--acc);font-weight:600}
+
+.export-dropdown{position:relative;display:inline-block}
+.export-menu{
+  position:fixed;display:none;background:#181822;border:1px solid var(--brd);
+  border-radius:3px;box-shadow:0 8px 24px rgba(0,0,0,0.7);padding:4px 0;
+  min-width:190px;z-index:99999;
+}
+.export-menu.open{display:block}
+.export-item{
+  padding:7px 12px;font-size:11px;color:var(--tx);cursor:pointer;
+  display:flex;align-items:center;gap:8px;transition:background 0.12s;white-space:nowrap;
+}
+.export-item:hover{background:#242434;color:#fff}
+.export-item svg{width:12px;height:12px;fill:currentColor;opacity:0.85}
+.export-divider{height:1px;background:#262634;margin:4px 0}
+
+.host-group-wrap{
+  border-bottom:1px solid #14141c;
+}
+.host-group-row{
+  display:flex;align-items:center;justify-content:space-between;
+  background:#13151d;border-bottom:1px solid #1c202c;
+  padding:4px 10px;height:30px;cursor:pointer;user-select:none;
+  position:sticky;top:0;z-index:5;transition:background 0.1s;
+}
+.host-group-row:hover{background:#181b26}
+.host-group-left{
+  display:flex;align-items:center;gap:7px;font-size:11px;overflow:hidden;
+}
+.host-chevron{
+  width:11px;height:11px;fill:var(--tx-dim);transition:transform 0.15s ease;flex-shrink:0;
+}
+.host-group-row.collapsed .host-chevron{
+  transform:rotate(-90deg);
+}
+.host-folder-icon{
+  width:14px;height:14px;fill:var(--acc);display:flex;align-items:center;flex-shrink:0;
+}
+.host-folder-icon svg{
+  width:13px;height:13px;fill:var(--acc);
+}
+.host-name{
+  font-weight:700;color:#fff;font-family:Consolas,monospace;font-size:11px;
+}
+.host-badge-count{
+  background:#1a2230;color:var(--cyan);border:1px solid rgba(0,180,216,0.3);
+  padding:1px 6px;border-radius:10px;font-size:9.5px;font-weight:700;font-family:Consolas,monospace;
+}
+.host-badges-sev{
+  display:flex;align-items:center;gap:4px;margin-left:4px;
+}
+.host-sev-tag{
+  padding:1px 5px;border-radius:2px;font-weight:700;font-size:9px;font-family:Consolas,monospace;
+}
+.host-sev-tag.crit{background:rgba(255,59,92,0.12);color:var(--red);border:1px solid rgba(255,59,92,0.25)}
+.host-sev-tag.high{background:rgba(255,140,0,0.12);color:var(--ora);border:1px solid rgba(255,140,0,0.25)}
+.host-sev-tag.med{background:rgba(255,204,0,0.12);color:var(--yl);border:1px solid rgba(255,204,0,0.25)}
+.host-sev-tag.low{background:rgba(0,180,216,0.12);color:var(--cyan);border:1px solid rgba(0,180,216,0.25)}
+
+.host-group-actions{
+  display:flex;align-items:center;gap:5px;flex-shrink:0;
+}
+.btn-host-action{
+  background:#1a1a24;border:1px solid var(--brd);color:var(--tx);font-size:9.5px;
+  padding:2px 6px;border-radius:2px;cursor:pointer;transition:all 0.1s;
+}
+.btn-host-action:hover{background:#252535;color:#fff}
+.btn-host-del{color:var(--red);border-color:rgba(255,59,92,0.3)}
+.btn-host-del:hover{background:var(--red);color:#fff}
+
+.host-group-children{
+  border-left:2px solid rgba(0,180,216,0.2);
+  margin-left:14px;
+}
+
+.hitsdb-table-container{
+  flex:1;display:flex;flex-direction:column;overflow:hidden;
+}
+.hitsdb-hdr{
+  background:#16161c;border-bottom:1px solid var(--brd);display:grid;
+  grid-template-columns:36px 50px 75px 1fr 180px 70px 80px 220px 75px 65px 95px;
+  font-size:10px;color:var(--tx-dim);text-transform:uppercase;letter-spacing:0.4px;
+  font-weight:600;padding:6px 10px;flex-shrink:0;align-items:center;white-space:nowrap;
+}
+.hitsdb-hdr > div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+
+.hitsdb-body{
+  flex:1;overflow-y:auto;background:#0d0d10;font-family:Consolas,monospace;font-size:10.5px;
+}
+.hitsdb-body::-webkit-scrollbar{width:5px}
+.hitsdb-body::-webkit-scrollbar-thumb{background:var(--brd);border-radius:2px}
+
+.hitsdb-row{
+  display:grid;grid-template-columns:36px 50px 75px 1fr 180px 70px 80px 220px 75px 65px 95px;
+  padding:4px 10px;border-bottom:1px solid #16161c;align-items:center;height:28px;
+  cursor:pointer;white-space:nowrap;overflow:hidden;
+}
+.hitsdb-row:hover{background:#181824}
+.hitsdb-row.selected{background:#131c28}
+
+.hitsdb-row > div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+
+.hdb-chk{display:flex;align-items:center;justify-content:center}
+.hdb-chk input{cursor:pointer;accent-color:var(--acc);width:13px;height:13px}
+.hdb-id{color:var(--tx-faint)}
+.hdb-time{color:var(--tx-dim)}
+.hdb-url{overflow:hidden;text-overflow:ellipsis;color:#fff;padding-right:8px}
+.hdb-url a{color:#fff;text-decoration:none}
+.hdb-url a:hover{color:var(--acc);text-decoration:underline}
+.hdb-ep{overflow:hidden;text-overflow:ellipsis;color:var(--cyan);font-weight:500}
+.hdb-code{font-weight:700}
+.code-200{color:var(--grn)}
+.code-red{color:var(--red)}
+.code-ora{color:var(--ora)}
+.code-yl{color:var(--yl)}
+
+.hdb-badge{font-weight:700;font-size:9.5px;letter-spacing:0.3px}
+.type-CRITICAL{color:var(--red)}
+.type-HIGH{color:var(--ora)}
+.type-MEDIUM{color:var(--yl)}
+.type-LOW{color:var(--cyan)}
+.type-INFO{color:var(--tx-dim)}
+
+.hdb-cap{overflow:hidden;text-overflow:ellipsis;color:var(--grn);font-size:10px}
+.hdb-size{color:var(--tx-dim)}
+.hdb-ms{color:var(--tx-dim)}
+
+.hdb-actions-cell{display:flex;align-items:center;gap:4px}
+.btn-row-action{
+  background:#1a1a24;border:1px solid var(--brd);color:var(--acc);font-size:9.5px;
+  padding:2px 6px;border-radius:2px;cursor:pointer;
+}
+.btn-row-action:hover{background:var(--acc);color:#000}
+.btn-row-del{
+  background:#201418;border:1px solid rgba(255,59,92,0.3);color:var(--red);font-size:9.5px;
+  padding:2px 5px;border-radius:2px;cursor:pointer;
+}
+.btn-row-del:hover{background:var(--red);color:#fff}
+
+.hitsdb-footer{
+  background:#141418;border-top:1px solid var(--brd);display:flex;align-items:center;
+  justify-content:space-between;padding:6px 12px;font-size:11px;color:var(--tx-dim);flex-shrink:0;
+}
+
+.modal-backdrop{
+  position:fixed;inset:0;background:rgba(0,0,0,0.75);display:none;
+  align-items:center;justify-content:center;z-index:9999;backdrop-filter:blur(2px);
+}
+.modal-backdrop.open{display:flex}
+.modal-box{
+  background:#141418;border:1px solid var(--brd);border-radius:4px;
+  display:flex;flex-direction:column;box-shadow:0 10px 40px rgba(0,0,0,0.8);overflow:hidden;
+}
+.modal-hdr{
+  background:#181820;border-bottom:1px solid var(--brd);padding:10px 14px;
+  display:flex;align-items:center;justify-content:space-between;font-size:12px;font-weight:600;
+}
+.modal-close{cursor:pointer;color:var(--tx-dim);font-size:18px;line-height:1}
+.modal-close:hover{color:#fff}
+.modal-body{padding:14px;display:flex;flex-direction:column;gap:12px;overflow-y:auto}
+.modal-ftr{
+  background:#181820;border-top:1px solid var(--brd);padding:10px 14px;
+  display:flex;align-items:center;justify-content:flex-end;gap:8px;
+}
+
+.insp-section{display:flex;flex-direction:column;gap:6px}
+.insp-sec-title{
+  font-size:10px;text-transform:uppercase;color:var(--tx-dim);font-weight:700;
+  letter-spacing:0.4px;border-bottom:1px solid #1e1e28;padding-bottom:3px;
+}
+.insp-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;background:#111116;
+  border:1px solid var(--brd);border-radius:3px;padding:8px 10px;font-size:11px;
+}
+.insp-row{display:flex;align-items:center;gap:6px}
+.insp-lbl{color:var(--tx-dim);min-width:90px}
+.insp-val{color:#fff;overflow:hidden;text-overflow:ellipsis;font-family:Consolas,monospace}
+
+.snippet-box{
+  background:#09090c;border:1px solid var(--brd);border-radius:3px;
+  padding:8px 10px;font-family:Consolas,monospace;font-size:10.5px;
+  color:#98c379;max-height:220px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;
+  user-select:text;
+}
+
+.toast{
+  position:fixed;bottom:20px;right:20px;background:#181822;border:1px solid var(--acc);
+  color:#fff;padding:8px 14px;border-radius:3px;font-size:11px;display:none;z-index:10000;
+  box-shadow:0 4px 20px rgba(0,0,0,0.6);font-weight:500;
+}
+</style>
+</head>
+<body>
+<div class="app-window">
+  <div class="win-titlebar">
+    <div class="logo">
+      <svg width="12" height="12" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      <span>URL Scanner</span>
+    </div>
+    <div class="win-ctrls">
+      <div class="win-ctrls-icons">
+        <span>&#8211;</span>
+        <span>&#9633;</span>
+        <span>&#10005;</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="navbar">
+    <a href="/" class="nav-item">
+      <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      <span>Runner</span>
+    </a>
+    <a href="/hits" class="nav-item active">
+      <svg viewBox="0 0 24 24"><path d="M12 3C7.58 3 4 4.79 4 7v10c0 2.21 3.58 4 8 4s8-1.79 8-4V7c0-2.21-3.58-4-8-4m0 2c3.87 0 6 1.5 6 2s-2.13 2-6 2-6-1.5-6-2 2.13-2 6-2m6 12c0 .5-2.13 2-6 2s-6-1.5-6-2v-2.23c1.61.78 3.73 1.23 6 1.23s4.39-.45 6-1.23V17m0-5c0 .5-2.13 2-6 2s-6-1.5-6-2V9.77c1.61.78 3.73 1.23 6 1.23s4.39-.45 6-1.23V12z"/></svg>
+      <span>Hits DB</span>
+      <span class="nav-badge" id="navHitsBadge">0</span>
+    </a>
+  </div>
+
+  <div class="hitsdb-page">
+    <div class="hitsdb-topbar">
+      <div class="hitsdb-title">
+        <svg viewBox="0 0 24 24"><path d="M12 3C7.58 3 4 4.79 4 7v10c0 2.21 3.58 4 8 4s8-1.79 8-4V7c0-2.21-3.58-4-8-4m0 2c3.87 0 6 1.5 6 2s-2.13 2-6 2-6-1.5-6-2 2.13-2 6-2m6 12c0 .5-2.13 2-6 2s-6-1.5-6-2v-2.23c1.61.78 3.73 1.23 6 1.23s4.39-.45 6-1.23V17m0-5c0 .5-2.13 2-6 2s-6-1.5-6-2V9.77c1.61.78 3.73 1.23 6 1.23s4.39-.45 6-1.23V12z"/></svg>
+        <span>BASE DE DONNÉES DES HITS</span>
+      </div>
+
+      <div class="hitsdb-stats">
+        <span class="hdb-stat">Total: <strong id="dbStatTotal">0</strong></span>
+        <span class="hdb-stat stat-crit">Critiques: <strong id="dbStatCrit">0</strong></span>
+        <span class="hdb-stat stat-high">Élevés: <strong id="dbStatHigh">0</strong></span>
+        <span class="hdb-stat stat-med">Moyens: <strong id="dbStatMed">0</strong></span>
+        <span class="hdb-stat stat-low">Bas: <strong id="dbStatLow">0</strong></span>
+        <span class="hdb-stat stat-other">Info: <strong id="dbStatInfo">0</strong></span>
+      </div>
+
+      <div class="hitsdb-actions">
+        <button class="btn-act" onclick="fetchHits()"><svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg> Rafraîchir</button>
+        <button class="btn-act btn-danger" onclick="confirmClearAll()"><svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg> Vider la DB</button>
+      </div>
+    </div>
+
+    <div class="hitsdb-ctrls">
+      <div class="hitsdb-search">
+        <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+        <input type="text" id="inpDbSearch" placeholder="Recherche globale (URL, corps/réponse, code, endpoint, fuites, toute valeur...)" oninput="applyFilters()">
+      </div>
+
+      <div class="hitsdb-filters">
+        <select id="selDbSeverity" onchange="applyFilters()">
+          <option value="ALL">Toutes sévérités</option>
+          <option value="CRITICAL">Critiques uniquement</option>
+          <option value="HIGH">Élevés uniquement</option>
+          <option value="MEDIUM">Moyens uniquement</option>
+          <option value="LOW">Bas uniquement</option>
+          <option value="INFO">Info uniquement</option>
+        </select>
+
+        <select id="selDbStatus" onchange="applyFilters()">
+          <option value="ALL">Tous statuts HTTP</option>
+          <option value="200">200 OK</option>
+          <option value="SUCCESS">2xx Success</option>
+          <option value="REDIRECT">3xx Redirections</option>
+          <option value="403">403 Forbidden</option>
+          <option value="401">401 Unauthorized</option>
+          <option value="5xx">5xx Erreurs serveur</option>
+        </select>
+
+        <select id="selDbSort" onchange="applyFilters()">
+          <option value="id_desc">ID Récent (décroissant)</option>
+          <option value="id_asc">ID Ancien (croissant)</option>
+          <option value="sev_desc">Sévérité (Critique d'abord)</option>
+          <option value="size_desc">Taille (décroissante)</option>
+          <option value="ms_asc">Latence (la plus rapide)</option>
+        </select>
+
+        <button class="btn-act active" id="btnToggleGroup" onclick="toggleGroupByHost()" title="Grouper et plier les hits par host">
+          <svg viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
+          <span>Dossiers par Host</span>
+        </button>
+        <button class="btn-act" id="btnCollapseAll" onclick="collapseAllHosts()" title="Plier tous les dossiers de host">
+          <svg viewBox="0 0 24 24"><path d="M12 8l-6 6 1.41 1.41L12 10.83l4.59 4.58L18 14z"/></svg>
+          <span>Plier tout</span>
+        </button>
+        <button class="btn-act" id="btnExpandAll" onclick="expandAllHosts()" title="Déplier tous les dossiers de host">
+          <svg viewBox="0 0 24 24"><path d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"/></svg>
+          <span>Déplier tout</span>
+        </button>
+      </div>
+
+      <div class="hitsdb-actions">
+        <button class="btn-act" id="btnDeleteBatch" onclick="confirmDeleteSelected()" disabled><svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg> Supprimer sélection (<span id="txtSelectedCount">0</span>)</button>
+        <div class="export-dropdown" id="dropdownExport">
+          <button class="btn-act btn-primary" id="btnExportMenu" onclick="toggleExportMenu(event)">
+            <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+            <span>Exporter</span>
+            <svg style="width:9px;height:9px;margin-left:2px" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+          </button>
+          <div class="export-menu" id="exportMenu">
+            <div class="export-item" onclick="triggerExport('json')">
+              <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+              <span>Format JSON (.json)</span>
+            </div>
+            <div class="export-item" onclick="triggerExport('csv')">
+              <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+              <span>Format CSV (.csv)</span>
+            </div>
+            <div class="export-item" onclick="triggerExport('txt')">
+              <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+              <span>Format TXT (.txt)</span>
+            </div>
+            <div class="export-divider"></div>
+            <div class="export-item" onclick="triggerExport('copy')">
+              <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+              <span>Copier URLs</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hitsdb-table-container">
+      <div class="hitsdb-hdr">
+        <div class="hdb-chk"><input type="checkbox" id="chkSelectAll" onchange="toggleSelectAll(this)"></div>
+        <div>#</div>
+        <div>Heure</div>
+        <div>URL Cible</div>
+        <div>Endpoint</div>
+        <div>Statut</div>
+        <div>Sévérité</div>
+        <div>Capture / Fuite Détectée</div>
+        <div>Taille</div>
+        <div>Latence</div>
+        <div style="text-align:right">Actions</div>
+      </div>
+      <div class="hitsdb-body" id="tbDbRows"></div>
+    </div>
+
+    <div class="hitsdb-footer">
+      <div>
+        <span id="txtFilterStatus">Chargement des données...</span>
+      </div>
+      <div>
+        <span id="txtSelectionSummary">0 élément sélectionné</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="modalHitDetails" onclick="if(event.target===this)closeModal('hitDetails')">
+  <div class="modal-box" style="width:740px;max-width:95vw">
+    <div class="modal-hdr">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-weight:700">Détails du Hit <span id="inspId">#-</span></span>
+        <span id="inspTypeBadge" class="hdb-badge type-CRITICAL">CRITICAL</span>
+        <span id="inspStatusBadge" class="hdb-code code-200" style="background:#202028;padding:2px 6px;border-radius:2px">200 OK</span>
+      </div>
+      <span class="modal-close" onclick="closeModal('hitDetails')">&times;</span>
+    </div>
+
+    <div class="modal-body" style="gap:12px;max-height:75vh">
+      <div class="insp-section">
+        <div class="insp-sec-title">Informations Cible & Requête</div>
+        <div class="insp-grid">
+          <div class="insp-row"><span class="insp-lbl">URL Cible:</span><span class="insp-val" id="inspUrl">—</span></div>
+          <div class="insp-row"><span class="insp-lbl">Endpoint:</span><span class="insp-val" id="inspEp" style="color:var(--cyan)">—</span></div>
+          <div class="insp-row" style="grid-column:1/3"><span class="insp-lbl">URL Complète:</span><span class="insp-val" id="inspFullUrl" style="color:#fff;user-select:text">—</span></div>
+          <div class="insp-row"><span class="insp-lbl">Découvert à:</span><span class="insp-val" id="inspTime">—</span></div>
+          <div class="insp-row"><span class="insp-lbl">Sondeur:</span><span class="insp-val" id="inspBot">—</span></div>
+          <div class="insp-row"><span class="insp-lbl">Statut HTTP:</span><span class="insp-val" id="inspStatus">—</span></div>
+          <div class="insp-row"><span class="insp-lbl">Content-Type:</span><span class="insp-val" id="inspContentType">—</span></div>
+          <div class="insp-row"><span class="insp-lbl">Taille Body:</span><span class="insp-val" id="inspSize">—</span></div>
+          <div class="insp-row"><span class="insp-lbl">Temps Réponse:</span><span class="insp-val" id="inspMs">—</span></div>
+        </div>
+      </div>
+
+      <div class="insp-section">
+        <div class="insp-sec-title">Capture & Données Sensibles Détectées</div>
+        <div class="insp-grid" style="grid-template-columns:1fr">
+          <div class="insp-row"><span class="insp-lbl">Type de Fuite:</span><span class="insp-val" id="inspCapture" style="color:var(--ora)">—</span></div>
+          <div class="insp-row"><span class="insp-lbl">Motifs Regex:</span><span class="insp-val" id="inspMatches" style="color:var(--red)">—</span></div>
+        </div>
+      </div>
+
+      <div class="insp-section">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div class="insp-sec-title">Extrait du Contenu Réponse</div>
+          <button class="btn-act" onclick="copySnippet()" style="font-size:9.5px;padding:2px 6px">Copier extrait</button>
+        </div>
+        <div class="snippet-box" id="inspSnippet">Aucun extrait disponible.</div>
+      </div>
+    </div>
+
+    <div class="modal-ftr">
+      <a id="inspLink" href="#" target="_blank" class="btn-act" style="text-decoration:none"><svg viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5c-1.11 0-2-.9-2-2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg> Ouvrir dans le navigateur</a>
+      <button class="btn-act" onclick="copyFullUrl()"><svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg> Copier URL</button>
+      <button class="btn-act btn-danger" onclick="deleteCurrentInspectedHit()"><svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg> Supprimer ce hit</button>
+      <button class="btn-act" onclick="closeModal('hitDetails')">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="modalConfirm" onclick="if(event.target===this)closeConfirmModal()">
+  <div class="modal-box" style="width:420px;max-width:92vw">
+    <div class="modal-hdr">
+      <span id="confirmTitle" style="font-weight:700">Confirmation</span>
+      <span class="modal-close" onclick="closeConfirmModal()">&times;</span>
+    </div>
+    <div class="modal-body">
+      <div id="confirmMessage" style="font-size:12px;color:var(--tx);line-height:1.5">
+        Êtes-vous sûr de vouloir effectuer cette action ?
+      </div>
+    </div>
+    <div class="modal-ftr">
+      <button class="btn-act" onclick="closeConfirmModal()">Annuler</button>
+      <button class="btn-act btn-danger" id="btnConfirmAction">Confirmer</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="mainToast"></div>
+
+<script>
+let rawHits = [];
+let displayedHits = [];
+let selectedHitIds = new Set();
+let currentInspectedHit = null;
+let confirmCallback = null;
+let isGroupByHost = localStorage.getItem('hits_group_by_host') !== 'false';
+let collapsedHosts = new Set();
+
+document.addEventListener('DOMContentLoaded', () => {
+  updateGroupButtonUI();
+  fetchHits();
+
+  document.querySelectorAll('.modal-backdrop').forEach(bd => {
+    bd.addEventListener('click', (e) => {
+      if (e.target === bd) {
+        bd.classList.remove('open');
+      }
+    });
+  });
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.modal-backdrop.open').forEach(bd => {
+        bd.classList.remove('open');
+      });
+    }
+  });
+});
+
+async function fetchHits() {
+  try {
+    const res = await fetch('/api/hits');
+    if (!res.ok) throw new Error('Erreur HTTP ' + res.status);
+    const data = await res.json();
+    rawHits = data.hits || [];
+    selectedHitIds.clear();
+    updateStatsBar(data.stats, rawHits.length);
+    applyFilters();
+    showToast('Base de données synchronisée : ' + rawHits.length + ' hits.');
+  } catch (err) {
+    showToast('Impossible de charger les hits de la base.');
+  }
+}
+
+function updateStatsBar(stats, totalCount) {
+  const tot = totalCount !== undefined ? totalCount : rawHits.length;
+  document.getElementById('navHitsBadge').textContent = tot;
+  document.getElementById('dbStatTotal').textContent = tot;
+
+  if (stats) {
+    document.getElementById('dbStatCrit').textContent = stats.critical || 0;
+    document.getElementById('dbStatHigh').textContent = stats.high || 0;
+    document.getElementById('dbStatMed').textContent = stats.medium || 0;
+    document.getElementById('dbStatLow').textContent = stats.low || 0;
+    document.getElementById('dbStatInfo').textContent = stats.info || 0;
+  } else {
+    let c = 0, h = 0, m = 0, l = 0, i = 0;
+    rawHits.forEach(item => {
+      const t = (item.type || '').toUpperCase();
+      if (t === 'CRITICAL') c++;
+      else if (t === 'HIGH') h++;
+      else if (t === 'MEDIUM') m++;
+      else if (t === 'LOW') l++;
+      else i++;
+    });
+    document.getElementById('dbStatCrit').textContent = c;
+    document.getElementById('dbStatHigh').textContent = h;
+    document.getElementById('dbStatMed').textContent = m;
+    document.getElementById('dbStatLow').textContent = l;
+    document.getElementById('dbStatInfo').textContent = i;
+  }
+}
+
+function buildHitSearchText(hit) {
+  if (hit._haystack) return hit._haystack;
+  const parts = [];
+  if (hit.id !== undefined && hit.id !== null) {
+    parts.push(String(hit.id));
+    parts.push('#' + hit.id);
+  }
+  if (hit.status !== undefined && hit.status !== null) {
+    parts.push(String(hit.status));
+    parts.push('http ' + hit.status);
+    parts.push('code ' + hit.status);
+  }
+  if (hit.time) parts.push(String(hit.time));
+  if (hit.url) parts.push(String(hit.url));
+  if (hit.ep) parts.push(String(hit.ep));
+  if (hit.full_url) parts.push(String(hit.full_url));
+  if (hit.type) parts.push(String(hit.type));
+  if (hit.capture) parts.push(String(hit.capture));
+  if (Array.isArray(hit.matches)) {
+    parts.push(hit.matches.join(' '));
+  }
+  if (hit.snippet) parts.push(String(hit.snippet));
+  if (hit.content_type) parts.push(String(hit.content_type));
+  if (hit.size !== undefined && hit.size !== null) parts.push(String(hit.size));
+  if (hit.ms !== undefined && hit.ms !== null) parts.push(String(hit.ms));
+  if (hit.bot !== undefined && hit.bot !== null) parts.push('bot ' + hit.bot);
+
+  for (const [k, v] of Object.entries(hit)) {
+    if (k.startsWith('_')) continue;
+    if (v !== null && v !== undefined && typeof v !== 'object') {
+      parts.push(String(v));
+    }
+  }
+
+  hit._haystack = parts.join(' ').toLowerCase();
+  return hit._haystack;
+}
+
+function applyFilters() {
+  const q = (document.getElementById('inpDbSearch').value || '').trim().toLowerCase();
+  const sevFilter = document.getElementById('selDbSeverity').value;
+  const statusFilter = document.getElementById('selDbStatus').value;
+  const sortChoice = document.getElementById('selDbSort').value;
+
+  displayedHits = rawHits.filter(hit => {
+    if (sevFilter !== 'ALL') {
+      if ((hit.type || '').toUpperCase() !== sevFilter) return false;
+    }
+
+    if (statusFilter !== 'ALL') {
+      const code = parseInt(hit.status, 10);
+      if (statusFilter === '200' && code !== 200) return false;
+      if (statusFilter === 'SUCCESS' && (code < 200 || code > 299)) return false;
+      if (statusFilter === 'REDIRECT' && (code < 300 || code > 399)) return false;
+      if (statusFilter === '403' && code !== 403) return false;
+      if (statusFilter === '401' && code !== 401) return false;
+      if (statusFilter === '5xx' && (code < 500 || code > 599)) return false;
+    }
+
+    if (q) {
+      const haystack = buildHitSearchText(hit);
+      const tokens = q.split(/\s+/).filter(Boolean);
+      for (let i = 0; i < tokens.length; i++) {
+        if (!haystack.includes(tokens[i])) return false;
+      }
+    }
+
+    return true;
+  });
+
+  const sevWeights = { 'CRITICAL': 4, 'HIGH': 3, 'MEDIUM': 2, 'LOW': 1, 'INFO': 0 };
+  displayedHits.sort((a, b) => {
+    if (sortChoice === 'id_desc') return (b.id || 0) - (a.id || 0);
+    if (sortChoice === 'id_asc') return (a.id || 0) - (b.id || 0);
+    if (sortChoice === 'sev_desc') {
+      const wa = sevWeights[(a.type || '').toUpperCase()] || 0;
+      const wb = sevWeights[(b.type || '').toUpperCase()] || 0;
+      if (wb !== wa) return wb - wa;
+      return (b.id || 0) - (a.id || 0);
+    }
+    if (sortChoice === 'size_desc') return (b.size || 0) - (a.size || 0);
+    if (sortChoice === 'ms_asc') return (a.ms || 0) - (b.ms || 0);
+    return (b.id || 0) - (a.id || 0);
+  });
+
+  renderTable();
+  updateSelectionControls();
+}
+
+function getHitHost(hit) {
+  if (hit.url) {
+    try {
+      const u = new URL(hit.url);
+      return `${u.protocol}//${u.host}`;
+    } catch (e) {
+      return hit.url.replace(/\/+$/, '');
+    }
+  }
+  if (hit.full_url) {
+    try {
+      const u = new URL(hit.full_url);
+      return `${u.protocol}//${u.host}`;
+    } catch (e) {
+      return hit.full_url.split('/')[2] || hit.full_url;
+    }
+  }
+  return 'Inconnu';
+}
+
+function toggleGroupByHost() {
+  isGroupByHost = !isGroupByHost;
+  localStorage.setItem('hits_group_by_host', isGroupByHost);
+  updateGroupButtonUI();
+  renderTable();
+}
+
+function updateGroupButtonUI() {
+  const btn = document.getElementById('btnToggleGroup');
+  const btnCol = document.getElementById('btnCollapseAll');
+  const btnExp = document.getElementById('btnExpandAll');
+  if (!btn) return;
+  if (isGroupByHost) {
+    btn.classList.add('active');
+    if (btnCol) btnCol.style.display = 'inline-flex';
+    if (btnExp) btnExp.style.display = 'inline-flex';
+  } else {
+    btn.classList.remove('active');
+    if (btnCol) btnCol.style.display = 'none';
+    if (btnExp) btnExp.style.display = 'none';
+  }
+}
+
+function collapseAllHosts() {
+  displayedHits.forEach(h => collapsedHosts.add(getHitHost(h)));
+  renderTable();
+}
+
+function expandAllHosts() {
+  collapsedHosts.clear();
+  renderTable();
+}
+
+function toggleHostGroup(host) {
+  if (collapsedHosts.has(host)) {
+    collapsedHosts.delete(host);
+  } else {
+    collapsedHosts.add(host);
+  }
+  renderTable();
+}
+
+function toggleSelectHost(host, chk) {
+  const hostHits = displayedHits.filter(h => getHitHost(h) === host);
+  hostHits.forEach(h => {
+    if (chk.checked) selectedHitIds.add(h.id);
+    else selectedHitIds.delete(h.id);
+  });
+  renderTable();
+  updateSelectionControls();
+}
+
+function exportHostJSON(host, e) {
+  if (e) e.stopPropagation();
+  const hostHits = rawHits.filter(h => getHitHost(h) === host);
+  if (!hostHits.length) return;
+  const safeName = host.replace(/[^a-z0-9_-]/gi, '_');
+  const blob = new Blob([JSON.stringify(hostHits, null, 2)], { type: 'application/json' });
+  downloadBlob(blob, `hits_${safeName}_${Date.now()}.json`);
+  showToast(`${hostHits.length} hit(s) de ${host} exporté(s).`);
+}
+
+function confirmDeleteHost(host, e) {
+  if (e) e.stopPropagation();
+  const hostHits = rawHits.filter(h => getHitHost(h) === host);
+  if (!hostHits.length) return;
+  const ids = hostHits.map(h => h.id).filter(Boolean);
+  showConfirm(
+    'Supprimer tout le host',
+    `Supprimer définitivement les ${ids.length} hits de ${host} ?`,
+    async () => {
+      try {
+        const res = await fetch('/api/hits/delete-batch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids })
+        });
+        if (res.ok) {
+          rawHits = rawHits.filter(h => !ids.includes(h.id));
+          ids.forEach(id => selectedHitIds.delete(id));
+          updateStatsBar();
+          applyFilters();
+          showToast(`${ids.length} hits supprimés.`);
+        } else {
+          showToast('Erreur lors de la suppression.');
+        }
+      } catch (err) {
+        showToast('Erreur réseau.');
+      }
+    }
+  );
+}
+
+function renderHitRow(hit) {
+  const isSelected = selectedHitIds.has(hit.id);
+  const row = document.createElement('div');
+  row.className = 'hitsdb-row' + (isSelected ? ' selected' : '');
+  row.onclick = () => openHitInspector(hit);
+
+  let statusCls = 'code-200';
+  const sc = parseInt(hit.status, 10);
+  if (sc >= 500) statusCls = 'code-red';
+  else if (sc === 403 || sc === 401) statusCls = 'code-ora';
+  else if (sc >= 300 && sc < 400) statusCls = 'code-yl';
+
+  const fullUrl = hit.full_url || (hit.url.replace(/\/$/, '') + hit.ep);
+  const sizeFormatted = hit.size > 1024 ? (hit.size / 1024).toFixed(1) + ' Ko' : hit.size + ' b';
+
+  row.innerHTML = `
+    <div class="hdb-chk" onclick="event.stopPropagation()">
+      <input type="checkbox" ${isSelected ? 'checked' : ''} onchange="toggleSelectHit(${hit.id}, this)">
+    </div>
+    <div class="hdb-id">#${hit.id || '-'}</div>
+    <div class="hdb-time">${hit.time || '-'}</div>
+    <div class="hdb-url" title="${esc(hit.url)}"><a href="${esc(hit.url)}" target="_blank" onclick="event.stopPropagation()">${esc(hit.url)}</a></div>
+    <div class="hdb-ep" title="${esc(hit.ep)}">${esc(hit.ep)}</div>
+    <div><span class="hdb-code ${statusCls}">${hit.status || 0}</span></div>
+    <div><span class="hdb-badge type-${hit.type}">${hit.type}</span></div>
+    <div class="hdb-cap" title="${esc(hit.capture)}">${esc(hit.capture)}</div>
+    <div class="hdb-size">${sizeFormatted}</div>
+    <div class="hdb-ms">${hit.ms || 0} ms</div>
+    <div class="hdb-actions-cell" onclick="event.stopPropagation()">
+      <button class="btn-row-action" onclick="openHitInspector(getHitById(${hit.id}))">Détails ↗</button>
+      <button class="btn-row-del" onclick="confirmDeleteSingle(${hit.id})">✕</button>
+    </div>
+  `;
+  return row;
+}
+
+function renderTable() {
+  const container = document.getElementById('tbDbRows');
+  container.innerHTML = '';
+
+  if (!displayedHits.length) {
+    container.innerHTML = '<div style="padding:60px;text-align:center;color:var(--tx-dim);font-size:12px">Aucun hit ne correspond aux filtres actuels.</div>';
+    document.getElementById('txtFilterStatus').textContent = `0 hit affiché sur ${rawHits.length} au total`;
+    return;
+  }
+
+  const allVisibleSelected = displayedHits.every(h => selectedHitIds.has(h.id));
+  document.getElementById('chkSelectAll').checked = displayedHits.length > 0 && allVisibleSelected;
+
+  if (!isGroupByHost) {
+    displayedHits.forEach(hit => {
+      container.appendChild(renderHitRow(hit));
+    });
+  } else {
+    const groups = new Map();
+    displayedHits.forEach(hit => {
+      const host = getHitHost(hit);
+      if (!groups.has(host)) groups.set(host, []);
+      groups.get(host).push(hit);
+    });
+
+    groups.forEach((hits, host) => {
+      const isCollapsed = collapsedHosts.has(host);
+      const wrap = document.createElement('div');
+      wrap.className = 'host-group-wrap';
+
+      let crit = 0, high = 0, med = 0, low = 0;
+      hits.forEach(h => {
+        const t = (h.type || '').toUpperCase();
+        if (t === 'CRITICAL') crit++;
+        else if (t === 'HIGH') high++;
+        else if (t === 'MEDIUM') med++;
+        else low++;
+      });
+
+      const allSelected = hits.length > 0 && hits.every(h => selectedHitIds.has(h.id));
+      const someSelected = !allSelected && hits.some(h => selectedHitIds.has(h.id));
+
+      const header = document.createElement('div');
+      header.className = 'host-group-row' + (isCollapsed ? ' collapsed' : '');
+      header.onclick = () => toggleHostGroup(host);
+
+      const left = document.createElement('div');
+      left.className = 'host-group-left';
+
+      const chkWrap = document.createElement('div');
+      chkWrap.className = 'hdb-chk';
+      chkWrap.onclick = (e) => e.stopPropagation();
+
+      const chk = document.createElement('input');
+      chk.type = 'checkbox';
+      chk.checked = allSelected;
+      if (someSelected) chk.indeterminate = true;
+      chk.onchange = (e) => toggleSelectHost(host, e.target);
+      chkWrap.appendChild(chk);
+      left.appendChild(chkWrap);
+
+      const chev = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      chev.setAttribute('class', 'host-chevron');
+      chev.setAttribute('viewBox', '0 0 24 24');
+      chev.innerHTML = '<path d="M7 10l5 5 5-5z"/>';
+      left.appendChild(chev);
+
+      const foldIcon = document.createElement('div');
+      foldIcon.className = 'host-folder-icon';
+      foldIcon.innerHTML = '<svg viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>';
+      left.appendChild(foldIcon);
+
+      const hostTitle = document.createElement('span');
+      hostTitle.className = 'host-name';
+      hostTitle.textContent = host;
+      left.appendChild(hostTitle);
+
+      const countBadge = document.createElement('span');
+      countBadge.className = 'host-badge-count';
+      countBadge.textContent = `${hits.length} hit${hits.length > 1 ? 's' : ''}`;
+      left.appendChild(countBadge);
+
+      const sevBox = document.createElement('div');
+      sevBox.className = 'host-badges-sev';
+      if (crit) {
+        const sc = document.createElement('span');
+        sc.className = 'host-sev-tag crit';
+        sc.textContent = `${crit} Crit`;
+        sevBox.appendChild(sc);
+      }
+      if (high) {
+        const sh = document.createElement('span');
+        sh.className = 'host-sev-tag high';
+        sh.textContent = `${high} High`;
+        sevBox.appendChild(sh);
+      }
+      if (med) {
+        const sm = document.createElement('span');
+        sm.className = 'host-sev-tag med';
+        sm.textContent = `${med} Med`;
+        sevBox.appendChild(sm);
+      }
+      if (low) {
+        const sl = document.createElement('span');
+        sl.className = 'host-sev-tag low';
+        sl.textContent = `${low} Info`;
+        sevBox.appendChild(sl);
+      }
+      left.appendChild(sevBox);
+      header.appendChild(left);
+
+      const actions = document.createElement('div');
+      actions.className = 'host-group-actions';
+      actions.onclick = (e) => e.stopPropagation();
+
+      const bExp = document.createElement('button');
+      bExp.className = 'btn-host-action';
+      bExp.textContent = 'Exporter';
+      bExp.title = 'Exporter les hits de ce host';
+      bExp.onclick = (e) => exportHostJSON(host, e);
+      actions.appendChild(bExp);
+
+      const bDel = document.createElement('button');
+      bDel.className = 'btn-host-action btn-host-del';
+      bDel.textContent = 'Supprimer';
+      bDel.title = 'Supprimer tous les hits de ce host';
+      bDel.onclick = (e) => confirmDeleteHost(host, e);
+      actions.appendChild(bDel);
+
+      header.appendChild(actions);
+      wrap.appendChild(header);
+
+      const children = document.createElement('div');
+      children.className = 'host-group-children';
+      if (isCollapsed) children.style.display = 'none';
+
+      hits.forEach(hit => {
+        children.appendChild(renderHitRow(hit));
+      });
+
+      wrap.appendChild(children);
+      container.appendChild(wrap);
+    });
+  }
+
+  document.getElementById('txtFilterStatus').textContent = `Affichage de ${displayedHits.length} hits sur ${rawHits.length} au total`;
+}
+
+function getHitById(id) {
+  return rawHits.find(h => h.id === id) || null;
+}
+
+function toggleSelectHit(id, chk) {
+  if (chk.checked) selectedHitIds.add(id);
+  else selectedHitIds.delete(id);
+  updateSelectionControls();
+  const row = chk.closest('.hitsdb-row');
+  if (row) {
+    if (chk.checked) row.classList.add('selected');
+    else row.classList.remove('selected');
+  }
+  const wrap = chk.closest('.host-group-wrap');
+  if (wrap) {
+    const hostChk = wrap.querySelector('.host-group-row input[type="checkbox"]');
+    const childChks = Array.from(wrap.querySelectorAll('.host-group-children input[type="checkbox"]'));
+    if (hostChk && childChks.length) {
+      const all = childChks.every(c => c.checked);
+      const some = !all && childChks.some(c => c.checked);
+      hostChk.checked = all;
+      hostChk.indeterminate = some;
+    }
+  }
+}
+
+function toggleSelectAll(masterChk) {
+  if (masterChk.checked) {
+    displayedHits.forEach(h => selectedHitIds.add(h.id));
+  } else {
+    displayedHits.forEach(h => selectedHitIds.delete(h.id));
+  }
+  renderTable();
+  updateSelectionControls();
+}
+
+function updateSelectionControls() {
+  const count = selectedHitIds.size;
+  document.getElementById('txtSelectedCount').textContent = count;
+  document.getElementById('txtSelectionSummary').textContent = `${count} élément${count > 1 ? 's' : ''} sélectionné${count > 1 ? 's' : ''}`;
+  const btn = document.getElementById('btnDeleteBatch');
+  btn.disabled = count === 0;
+}
+
+function openHitInspector(hit) {
+  if (!hit) return;
+  currentInspectedHit = hit;
+
+  document.getElementById('inspId').textContent = '#' + (hit.id || '-');
+  const badge = document.getElementById('inspTypeBadge');
+  badge.className = 'hdb-badge type-' + hit.type;
+  badge.textContent = hit.type;
+
+  const stBadge = document.getElementById('inspStatusBadge');
+  stBadge.textContent = (hit.status || 200) + ' OK';
+
+  document.getElementById('inspUrl').textContent = hit.url || '—';
+  document.getElementById('inspEp').textContent = hit.ep || '—';
+
+  const fullUrl = hit.full_url || (hit.url.replace(/\/$/, '') + hit.ep);
+  document.getElementById('inspFullUrl').textContent = fullUrl;
+  document.getElementById('inspLink').href = fullUrl;
+
+  document.getElementById('inspTime').textContent = hit.time || '—';
+  document.getElementById('inspBot').textContent = hit.bot ? ('Bot #' + hit.bot) : '—';
+  document.getElementById('inspStatus').textContent = hit.status || 0;
+  document.getElementById('inspContentType').textContent = hit.content_type || '—';
+  document.getElementById('inspSize').textContent = hit.size ? hit.size + ' octets' : '0';
+  document.getElementById('inspMs').textContent = (hit.ms || 0) + ' ms';
+
+  document.getElementById('inspCapture').textContent = hit.capture || 'Aucune fuite spécifique';
+  const matches = Array.isArray(hit.matches) && hit.matches.length ? hit.matches.join(', ') : 'Aucun motif regex';
+  document.getElementById('inspMatches').textContent = matches;
+
+  document.getElementById('inspSnippet').textContent = hit.snippet || 'Aucun extrait disponible.';
+
+  openModal('hitDetails');
+}
+
+function openModal(id) {
+  const el = document.getElementById('modal' + id.charAt(0).toUpperCase() + id.slice(1));
+  if (el) el.classList.add('open');
+}
+
+function closeModal(id) {
+  const el = document.getElementById('modal' + id.charAt(0).toUpperCase() + id.slice(1));
+  if (el) el.classList.remove('open');
+}
+
+function copyFullUrl() {
+  if (!currentInspectedHit) return;
+  const fullUrl = currentInspectedHit.full_url || (currentInspectedHit.url.replace(/\/$/, '') + currentInspectedHit.ep);
+  navigator.clipboard.writeText(fullUrl);
+  showToast('URL copiée dans le presse-papier.');
+}
+
+function copySnippet() {
+  if (!currentInspectedHit || !currentInspectedHit.snippet) {
+    showToast('Aucun extrait à copier.');
+    return;
+  }
+  navigator.clipboard.writeText(currentInspectedHit.snippet);
+  showToast('Extrait de réponse copié.');
+}
+
+function copyUrls() {
+  const targets = selectedHitIds.size > 0 
+    ? rawHits.filter(h => selectedHitIds.has(h.id))
+    : displayedHits;
+
+  if (!targets.length) {
+    showToast('Aucun hit disponible à copier.');
+    return;
+  }
+  const urls = targets.map(h => h.full_url || (h.url.replace(/\/$/, '') + h.ep)).join('\n');
+  navigator.clipboard.writeText(urls);
+  showToast(`${targets.length} URL(s) copiée(s).`);
+}
+
+function exportJSON() {
+  const targets = selectedHitIds.size > 0 
+    ? rawHits.filter(h => selectedHitIds.has(h.id))
+    : displayedHits;
+
+  if (!targets.length) {
+    showToast('Aucun hit à exporter.');
+    return;
+  }
+  const blob = new Blob([JSON.stringify(targets, null, 2)], { type: 'application/json' });
+  downloadBlob(blob, `hits_db_${Date.now()}.json`);
+  showToast(`${targets.length} hit(s) exporté(s) en JSON.`);
+}
+
+function exportTXT() {
+  const targets = selectedHitIds.size > 0 
+    ? rawHits.filter(h => selectedHitIds.has(h.id))
+    : displayedHits;
+
+  if (!targets.length) {
+    showToast('Aucun hit à exporter.');
+    return;
+  }
+  const lines = targets.map(h => `${h.time || ''} | ${h.full_url || (h.url + h.ep)} | Status: ${h.status} | [${h.type}] | ${h.size}b`);
+  const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+  downloadBlob(blob, `hits_db_${Date.now()}.txt`);
+  showToast(`${targets.length} hit(s) exporté(s) en TXT.`);
+}
+
+function exportCSV() {
+  const targets = selectedHitIds.size > 0 
+    ? rawHits.filter(h => selectedHitIds.has(h.id))
+    : displayedHits;
+
+  if (!targets.length) {
+    showToast('Aucun hit à exporter.');
+    return;
+  }
+  const headers = ['ID', 'Date', 'Target URL', 'Endpoint', 'Full URL', 'Status', 'Severity', 'Capture', 'Content-Type', 'Size', 'Latency_ms'];
+  const rows = targets.map(h => [
+    h.id || '',
+    h.time || '',
+    `"${(h.url || '').replace(/"/g, '""')}"`,
+    `"${(h.ep || '').replace(/"/g, '""')}"`,
+    `"${(h.full_url || (h.url + h.ep)).replace(/"/g, '""')}"`,
+    h.status || '',
+    h.type || '',
+    `"${(h.capture || '').replace(/"/g, '""')}"`,
+    `"${(h.content_type || '').replace(/"/g, '""')}"`,
+    h.size || 0,
+    h.ms || 0
+  ]);
+  const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  downloadBlob(blob, `hits_db_${Date.now()}.csv`);
+  showToast(`${targets.length} hit(s) exporté(s) en CSV.`);
+}
+
+function downloadBlob(blob, filename) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function toggleExportMenu(e) {
+  if (e) e.stopPropagation();
+  const m = document.getElementById('exportMenu');
+  const btn = document.getElementById('btnExportMenu');
+  if (!m || !btn) return;
+  if (m.classList.contains('open')) {
+    m.classList.remove('open');
+    return;
+  }
+  m.classList.add('open');
+  const rect = btn.getBoundingClientRect();
+  const menuWidth = m.offsetWidth || 190;
+  m.style.top = (rect.bottom + 4) + 'px';
+  m.style.left = Math.max(10, rect.right - menuWidth) + 'px';
+}
+
+function closeExportMenu() {
+  const m = document.getElementById('exportMenu');
+  if (m) m.classList.remove('open');
+}
+
+function triggerExport(mode) {
+  closeExportMenu();
+  if (mode === 'json') exportJSON();
+  else if (mode === 'csv') exportCSV();
+  else if (mode === 'txt') exportTXT();
+  else if (mode === 'copy') copyUrls();
+}
+
+window.addEventListener('click', (e) => {
+  const m = document.getElementById('exportMenu');
+  const btn = document.getElementById('btnExportMenu');
+  if (m && m.classList.contains('open')) {
+    if (btn && btn.contains(e.target)) return;
+    if (!m.contains(e.target)) {
+      closeExportMenu();
+    }
+  }
+});
+
+window.addEventListener('scroll', closeExportMenu, true);
+window.addEventListener('resize', closeExportMenu);
+
+function showConfirm(title, message, callback) {
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMessage').textContent = message;
+  confirmCallback = callback;
+  const btn = document.getElementById('btnConfirmAction');
+  btn.onclick = () => {
+    const action = confirmCallback;
+    closeConfirmModal();
+    if (typeof action === 'function') {
+      action();
+    }
+  };
+  openModal('confirm');
+}
+
+function closeConfirmModal() {
+  closeModal('confirm');
+  confirmCallback = null;
+}
+
+function confirmClearAll() {
+  if (!rawHits.length) {
+    showToast('La base de données est déjà vide.');
+    return;
+  }
+  showConfirm(
+    'Vider la base de données',
+    `Attention : vous êtes sur le point de supprimer définitivement la totalité des ${rawHits.length} hits enregistrés. Cette action est irréversible.`,
+    async () => {
+      try {
+        const res = await fetch('/api/hits', { method: 'DELETE' });
+        if (!res.ok) throw new Error();
+        rawHits = [];
+        selectedHitIds.clear();
+        updateStatsBar(null, 0);
+        applyFilters();
+        showToast('La base de données a été vidée.');
+      } catch (e) {
+        showToast('Erreur lors de la réinitialisation de la base.');
+      }
+    }
+  );
+}
+
+function confirmDeleteSelected() {
+  const ids = Array.from(selectedHitIds);
+  if (!ids.length) return;
+  showConfirm(
+    'Supprimer la sélection',
+    `Êtes-vous sûr de vouloir supprimer définitivement les ${ids.length} hits sélectionnés ?`,
+    async () => {
+      try {
+        const res = await fetch('/api/hits/delete-batch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids: ids })
+        });
+        if (!res.ok) throw new Error();
+        rawHits = rawHits.filter(h => !selectedHitIds.has(h.id));
+        selectedHitIds.clear();
+        updateStatsBar(null, rawHits.length);
+        applyFilters();
+        showToast(`${ids.length} hit(s) supprimé(s).`);
+      } catch (e) {
+        showToast('Erreur lors de la suppression par lot.');
+      }
+    }
+  );
+}
+
+function confirmDeleteSingle(id) {
+  const hit = getHitById(id);
+  const name = hit ? (hit.full_url || hit.ep) : `#${id}`;
+  showConfirm(
+    'Supprimer le hit',
+    `Êtes-vous sûr de vouloir supprimer le hit ${name} ?`,
+    async () => {
+      try {
+        const res = await fetch(`/api/hits/${id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error();
+        rawHits = rawHits.filter(h => h.id !== id);
+        selectedHitIds.delete(id);
+        updateStatsBar(null, rawHits.length);
+        applyFilters();
+        showToast(`Hit #${id} supprimé.`);
+      } catch (e) {
+        showToast('Erreur lors de la suppression.');
+      }
+    }
+  );
+}
+
+function deleteCurrentInspectedHit() {
+  if (!currentInspectedHit || !currentInspectedHit.id) return;
+  const id = currentInspectedHit.id;
+  closeModal('hitDetails');
+  confirmDeleteSingle(id);
+}
+
+function showToast(msg) {
+  const t = document.getElementById('mainToast');
+  if (!t) return;
+  t.textContent = msg;
+  t.style.display = 'block';
+  clearTimeout(t._tm);
+  t._tm = setTimeout(() => {
+    t.style.display = 'none';
+  }, 2800);
+}
+
+function esc(s) {
+  if (!s) return '';
+  const d = document.createElement('div');
+  d.textContent = String(s);
+  return d.innerHTML;
+}
+</script>
+</body>
+</html>

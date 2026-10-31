@@ -38,7 +38,7 @@ body{
 }
 .nav-item{
   display:flex;align-items:center;gap:6px;padding:6px 12px;font-size:11px;color:var(--tx-dim);
-  cursor:pointer;border-radius:3px;font-weight:500;transition:all 0.1s;
+  cursor:pointer;border-radius:3px;font-weight:500;transition:all 0.1s;text-decoration:none;
 }
 .nav-item:hover{background:var(--s2);color:var(--tx)}
 .nav-item.active{color:var(--acc);background:rgba(0,180,216,0.08)}
@@ -337,58 +337,8 @@ body{
   padding:1px 6px;border-radius:10px;margin-left:4px;line-height:1.2;
 }
 
-.hitsdb-page{
-  flex:1;display:flex;flex-direction:column;overflow:hidden;background:#0d0d10;
-}
-.hitsdb-topbar{
-  background:#141418;border-bottom:1px solid var(--brd);display:flex;align-items:center;
-  padding:0 12px;gap:12px;height:42px;flex-shrink:0;overflow-x:auto;white-space:nowrap;
-}
-.hitsdb-title{
-  display:flex;align-items:center;gap:6px;font-weight:700;font-size:11px;color:#fff;letter-spacing:0.4px;
-}
-.hitsdb-title svg{width:13px;height:13px;fill:var(--acc)}
-.hitsdb-stats{display:flex;align-items:center;gap:6px;font-size:10.5px}
-.hdb-stat{background:#1a1a22;border:1px solid var(--brd);padding:2px 8px;border-radius:2px;color:var(--tx-dim);font-family:Consolas,monospace}
-.hdb-stat strong{color:#fff}
-.stat-crit strong{color:var(--red)}
-.stat-high strong{color:var(--ora)}
-.stat-other strong{color:var(--yl)}
-.hitsdb-search input{
-  background:#0d0d10;border:1px solid var(--brd);color:#fff;border-radius:2px;
-  padding:4px 8px;font-size:11px;width:230px;outline:none;
-}
-.hitsdb-search input:focus{border-color:var(--acc)}
-.hitsdb-filters select{
-  background:#0d0d10;border:1px solid var(--brd);color:var(--tx);border-radius:2px;
-  padding:4px 8px;font-size:11px;outline:none;
-}
-.hitsdb-actions{display:flex;align-items:center;gap:6px;margin-left:auto}
-.hitsdb-table-container{
-  flex:1;display:flex;flex-direction:column;overflow:hidden;
-}
-.hitsdb-hdr{
-  background:#16161c;border-bottom:1px solid var(--brd);display:grid;
-  grid-template-columns:46px 75px 1fr 180px 65px 75px 230px 75px 65px 70px;
-  font-size:10px;color:var(--tx-dim);text-transform:uppercase;letter-spacing:0.4px;
-  font-weight:600;padding:6px 10px;flex-shrink:0;
-}
-.hitsdb-body{
-  flex:1;overflow-y:auto;background:#0d0d10;font-family:Consolas,monospace;font-size:10.5px;
-}
-.hitsdb-body::-webkit-scrollbar{width:5px}
-.hitsdb-body::-webkit-scrollbar-thumb{background:var(--brd);border-radius:2px}
-.hitsdb-row{
-  display:grid;grid-template-columns:46px 75px 1fr 180px 65px 75px 230px 75px 65px 70px;
-  padding:4px 10px;border-bottom:1px solid #16161c;align-items:center;height:28px;
-  cursor:pointer;white-space:nowrap;
-}
-.hitsdb-row:hover{background:#181824}
-.hdb-url{overflow:hidden;text-overflow:ellipsis;color:#fff;padding-right:8px}
-.hdb-ep{overflow:hidden;text-overflow:ellipsis;color:var(--cyan)}
-.hdb-code{font-weight:700;color:var(--grn)}
 .hdb-badge{font-weight:700;font-size:9.5px;letter-spacing:0.3px}
-.hdb-cap{overflow:hidden;text-overflow:ellipsis;color:var(--ora);font-size:10px}
+.hdb-code{font-weight:700;color:var(--grn)}
 .btn-inspect{
   background:#202028;border:1px solid var(--brd);color:var(--acc);font-size:9.5px;
   padding:2px 6px;border-radius:2px;cursor:pointer;
@@ -444,15 +394,15 @@ body{
   </div>
 
   <div class="navbar">
-    <div class="nav-item active" id="tabRunner" onclick="switchNav('runner')">
+    <div class="nav-item active" id="tabRunner">
       <svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.38-1 1.72V7h4a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h4V5.72c-.6-.34-1-.98-1-1.72a2 2 0 0 1 2-2m-3 9a1 1 0 0 0-1 1 1 1 0 0 0 1 1 1 1 0 0 0 1-1 1 1 0 0 0-1-1m6 0a1 1 0 0 0-1 1 1 1 0 0 0 1 1 1 1 0 0 0 1-1 1 1 0 0 0-1-1m-7 5h8v-1H8v1z"/></svg>
       <span>Runner</span>
     </div>
-    <div class="nav-item" id="tabHitsDB" onclick="switchNav('hitsdb')">
+    <a href="/hits" class="nav-item" id="tabHitsDB">
       <svg viewBox="0 0 24 24"><path d="M12 3C7.58 3 4 4.79 4 7v10c0 2.21 3.58 4 8 4s8-1.79 8-4V7c0-2.21-3.58-4-8-4m0 2c3.87 0 6 1.5 6 2s-2.13 2-6 2-6-1.5-6-2 2.13-2 6-2m6 12c0 .5-2.13 2-6 2s-6-1.5-6-2v-2.23c1.61.78 3.73 1.23 6 1.23s4.39-.45 6-1.23V17m0-5c0 .5-2.13 2-6 2s-6-1.5-6-2V9.77c1.61.78 3.73 1.23 6 1.23s4.39-.45 6-1.23V12z"/></svg>
       <span>Hits DB</span>
       <span class="nav-badge" id="navHitsBadge">0</span>
-    </div>
+    </a>
     <div class="nav-item" id="tabWordlists" onclick="openModal('wordlists')">
       <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2m-5 14H7v-2h7v2m3-4H7v-2h10v2m0-4H7V7h10v2z"/></svg>
       <span>Wordlists</span>
@@ -666,58 +616,6 @@ body{
   </div>
   </div>
 
-  <div id="viewHitsDB" class="hitsdb-page" style="display:none">
-    <div class="hitsdb-topbar">
-      <div class="hitsdb-title">
-        <svg viewBox="0 0 24 24"><path d="M12 3C7.58 3 4 4.79 4 7v10c0 2.21 3.58 4 8 4s8-1.79 8-4V7c0-2.21-3.58-4-8-4m0 2c3.87 0 6 1.5 6 2s-2.13 2-6 2-6-1.5-6-2 2.13-2 6-2m6 12c0 .5-2.13 2-6 2s-6-1.5-6-2v-2.23c1.61.78 3.73 1.23 6 1.23s4.39-.45 6-1.23V17m0-5c0 .5-2.13 2-6 2s-6-1.5-6-2V9.77c1.61.78 3.73 1.23 6 1.23s4.39-.45 6-1.23V12z"/></svg>
-        <span>HITS DATABASE & VULNÉRABILITÉS</span>
-      </div>
-
-      <div class="hitsdb-stats">
-        <span class="hdb-stat">Total: <strong id="dbStatTotal">0</strong></span>
-        <span class="hdb-stat stat-crit">Critiques: <strong id="dbStatCrit">0</strong></span>
-        <span class="hdb-stat stat-high">Élevés: <strong id="dbStatHigh">0</strong></span>
-        <span class="hdb-stat stat-other">Moyens/Bas: <strong id="dbStatOther">0</strong></span>
-      </div>
-
-      <div class="hitsdb-search">
-        <input type="text" id="inpDbSearch" placeholder="Rechercher par URL, endpoint, fuite..." oninput="filterDbTable()">
-      </div>
-
-      <div class="hitsdb-filters">
-        <select id="selDbSeverity" onchange="filterDbTable()">
-          <option value="ALL">Toutes sévérités</option>
-          <option value="CRITICAL">Critiques uniquement</option>
-          <option value="HIGH">Élevés uniquement</option>
-          <option value="OTHER">Moyens / Bas</option>
-        </select>
-      </div>
-
-      <div class="hitsdb-actions">
-        <button class="btn-cancel" onclick="exportHitsJSON()">Exporter JSON</button>
-        <button class="btn-cancel" onclick="exportHitsTXT()">Exporter TXT</button>
-        <button class="btn-cancel" onclick="copyAllHitUrls()">Copier URLs</button>
-        <button class="btn-cancel" onclick="clearHitsDB()" style="color:var(--red)">Vider DB</button>
-      </div>
-    </div>
-
-    <div class="hitsdb-table-container">
-      <div class="hitsdb-hdr">
-        <div>#</div>
-        <div>Heure</div>
-        <div>URL Cible</div>
-        <div>Endpoint</div>
-        <div>Statut</div>
-        <div>Sévérité</div>
-        <div>Capture / Fuite Détectée</div>
-        <div>Taille</div>
-        <div>Latence</div>
-        <div>Action</div>
-      </div>
-      <div class="hitsdb-body" id="tbDbRows"></div>
-    </div>
-  </div>
-
 </div>
 
 <div class="modal-backdrop" id="modalWordlists" onclick="if(event.target===this)closeModal('wordlists')">
@@ -875,15 +773,9 @@ let sessionCritCount = 0;
 let sessionHighCount = 0;
 let sessionOtherCount = 0;
 
-let dbHits = [];
-let dbCritCount = 0;
-let dbHighCount = 0;
-let dbOtherCount = 0;
-
 let botElements = {};
 let activeBotsCount = 10;
 let maximizedPane = null;
-let currentNav = 'runner';
 let currentInspectedHit = null;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -893,9 +785,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initSplitters();
   loadDbHits();
   updateVolumeCalculation();
-  if (window.location.pathname === '/hits' || window.location.hash === '#hitsdb') {
-    switchNav('hitsdb');
-  }
 
   document.querySelectorAll('.modal-backdrop').forEach(bd => {
     bd.addEventListener('click', (e) => {
@@ -919,44 +808,11 @@ async function loadDbHits() {
     const res = await fetch('/api/hits');
     if (res.ok) {
       const data = await res.json();
-      if (data.hits) {
-        dbHits = data.hits;
-        dbCritCount = 0;
-        dbHighCount = 0;
-        dbOtherCount = 0;
-        dbHits.forEach(h => {
-          if (h.type === 'CRITICAL') dbCritCount++;
-          else if (h.type === 'HIGH') dbHighCount++;
-          else dbOtherCount++;
-        });
-        if (document.getElementById('navHitsBadge')) {
-          document.getElementById('navHitsBadge').textContent = dbHits.length;
-        }
-        renderHitsDbPage();
-      }
+      const count = data.total !== undefined ? data.total : (data.hits ? data.hits.length : 0);
+      const badge = document.getElementById('navHitsBadge');
+      if (badge) badge.textContent = count;
     }
   } catch (e) {}
-}
-
-function switchNav(nav) {
-  currentNav = nav;
-  const tabRunner = document.getElementById('tabRunner');
-  const tabHitsDB = document.getElementById('tabHitsDB');
-  const viewRunner = document.getElementById('viewRunner');
-  const viewHitsDB = document.getElementById('viewHitsDB');
-
-  if (nav === 'runner') {
-    tabRunner.classList.add('active');
-    tabHitsDB.classList.remove('active');
-    viewRunner.style.display = 'flex';
-    viewHitsDB.style.display = 'none';
-  } else if (nav === 'hitsdb') {
-    tabHitsDB.classList.add('active');
-    tabRunner.classList.remove('active');
-    viewRunner.style.display = 'none';
-    viewHitsDB.style.display = 'flex';
-    loadDbHits();
-  }
 }
 
 const ICON_MAXIMIZE = '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>';
@@ -1708,11 +1564,11 @@ function addHitToUI(hit) {
   document.getElementById('cntHighBadge').textContent = sessionHighCount;
   document.getElementById('cntOtherBadge').textContent = sessionOtherCount;
 
-  dbHits.unshift(hit);
-  if (hit.type === 'CRITICAL') dbCritCount++;
-  else if (hit.type === 'HIGH') dbHighCount++;
-  else dbOtherCount++;
-  if (document.getElementById('navHitsBadge')) document.getElementById('navHitsBadge').textContent = dbHits.length;
+  const badge = document.getElementById('navHitsBadge');
+  if (badge) {
+    const cur = parseInt(badge.textContent || '0', 10);
+    badge.textContent = isNaN(cur) ? 1 : cur + 1;
+  }
 
   if (currentHitsFilter === 'ALL' ||
      (currentHitsFilter === 'CRITICAL' && hit.type === 'CRITICAL') ||
@@ -1731,85 +1587,16 @@ function addHitToUI(hit) {
     `;
     list.insertBefore(row, list.firstChild);
   }
-
-  if (currentNav === 'hitsdb') {
-    renderHitsDbPage();
-  }
-}
-
-function renderHitsDbPage() {
-  if (document.getElementById('dbStatTotal')) document.getElementById('dbStatTotal').textContent = dbHits.length;
-  if (document.getElementById('dbStatCrit')) document.getElementById('dbStatCrit').textContent = dbCritCount;
-  if (document.getElementById('dbStatHigh')) document.getElementById('dbStatHigh').textContent = dbHighCount;
-  if (document.getElementById('dbStatOther')) document.getElementById('dbStatOther').textContent = dbOtherCount;
-  filterDbTable();
-}
-
-function filterDbTable() {
-  const q = (document.getElementById('inpDbSearch') ? document.getElementById('inpDbSearch').value : '').toLowerCase();
-  const sevFilter = document.getElementById('selDbSeverity') ? document.getElementById('selDbSeverity').value : 'ALL';
-  const container = document.getElementById('tbDbRows');
-  if (!container) return;
-  container.innerHTML = '';
-
-  const filtered = dbHits.filter(h => {
-    if (sevFilter === 'CRITICAL' && h.type !== 'CRITICAL') return false;
-    if (sevFilter === 'HIGH' && h.type !== 'HIGH') return false;
-    if (sevFilter === 'OTHER' && (h.type === 'CRITICAL' || h.type === 'HIGH')) return false;
-
-    if (q) {
-      const targetStr = `${h.url} ${h.ep} ${h.type} ${h.capture || ''}`.toLowerCase();
-      if (!targetStr.includes(q)) return false;
-    }
-    return true;
-  });
-
-  if (!filtered.length) {
-    container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--tx-dim);font-size:12px">Aucun hit disponible dans la base de données.</div>';
-    return;
-  }
-
-  filtered.forEach(hit => {
-    const row = document.createElement('div');
-    row.className = 'hitsdb-row';
-    row.onclick = () => openHitInspector(hit);
-
-    row.innerHTML = `
-      <div>#${hit.id || '—'}</div>
-      <div style="color:var(--tx-dim)">${hit.time}</div>
-      <div class="hdb-url" title="${esc(hit.url)}">${esc(hit.url)}</div>
-      <div class="hdb-ep" title="${esc(hit.ep)}">${esc(hit.ep)}</div>
-      <div><span class="hdb-code">${hit.status}</span></div>
-      <div><span class="hdb-badge type-${hit.type}">${hit.type}</span></div>
-      <div class="hdb-cap" title="${esc(hit.capture)}">${esc(hit.capture)}</div>
-      <div>${hit.size} b</div>
-      <div style="color:var(--tx-dim)">${hit.ms || 0} ms</div>
-      <div><button class="btn-inspect" onclick="event.stopPropagation();openHitInspector(dbHits[${dbHits.indexOf(hit)}])">Détails ↗</button></div>
-    `;
-    container.appendChild(row);
-  });
 }
 
 function copyAllHitUrls() {
-  const target = currentNav === 'hitsdb' ? dbHits : sessionHits;
-  if (!target.length) {
+  if (!sessionHits.length) {
     showToast('Aucun hit disponible à copier.');
     return;
   }
-  const urls = target.map(h => h.full_url || (h.url + h.ep)).join('\n');
+  const urls = sessionHits.map(h => h.full_url || (h.url + h.ep)).join('\n');
   navigator.clipboard.writeText(urls);
-  showToast(`${target.length} URLs de hits copiées.`);
-}
-
-function clearHitsDB() {
-  dbHits = [];
-  dbCritCount = 0;
-  dbHighCount = 0;
-  dbOtherCount = 0;
-  if (document.getElementById('navHitsBadge')) document.getElementById('navHitsBadge').textContent = '0';
-  renderHitsDbPage();
-  fetch('/api/hits', { method: 'DELETE' }).catch(() => {});
-  showToast('Base de données des hits réinitialisée');
+  showToast(`${sessionHits.length} URLs de hits copiées.`);
 }
 
 function openHitInspector(hit) {
@@ -2102,12 +1889,11 @@ function finishRun(statusLabel) {
 }
 
 function exportHitsJSON() {
-  const target = currentNav === 'hitsdb' ? dbHits : sessionHits;
-  if (!target.length) {
+  if (!sessionHits.length) {
     showToast('Aucun hit à exporter.');
     return;
   }
-  const blob = new Blob([JSON.stringify(target, null, 2)], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify(sessionHits, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = 'hits_' + Date.now() + '.json';
@@ -2115,12 +1901,11 @@ function exportHitsJSON() {
 }
 
 function exportHitsTXT() {
-  const target = currentNav === 'hitsdb' ? dbHits : sessionHits;
-  if (!target.length) {
+  if (!sessionHits.length) {
     showToast('Aucun hit à exporter.');
     return;
   }
-  const lines = target.map(h => `${h.time} | ${h.url}${h.ep} | ${h.status} | [${h.type}] | ${h.size}b`);
+  const lines = sessionHits.map(h => `${h.time} | ${h.url}${h.ep} | ${h.status} | [${h.type}] | ${h.size}b`);
   const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
