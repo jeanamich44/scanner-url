@@ -131,6 +131,8 @@ body{
 .bot-col-st{overflow:hidden;text-overflow:ellipsis;font-weight:600;font-size:10px;letter-spacing:0.2px}
 .st-PROCESSING{color:var(--yl)}
 .st-SUCCESS{color:var(--grn)}
+.st-BAD{color:#ff6b6b}
+.st-BAN{color:#ff0055;font-weight:700;text-shadow:0 0 6px rgba(255,0,85,0.4)}
 .st-FAIL{color:var(--tx-faint)}
 .st-ERROR{color:var(--red)}
 .st-IDLE{color:#404050}
@@ -163,8 +165,8 @@ body{
 .hits-list::-webkit-scrollbar-thumb{background:var(--brd);border-radius:2px}
 .hit-row{
   display:grid;grid-template-columns:55px 130px 1fr 65px 110px;padding:0 8px;
-  border-bottom:1px solid #16161c;align-items:center;height:24px;cursor:pointer;
-  white-space:nowrap;overflow:hidden;
+  border-bottom:1px solid #16161c;align-items:center;height:24px;min-height:24px;max-height:24px;
+  line-height:24px;cursor:pointer;white-space:nowrap;overflow:hidden;
 }
 .hit-row:hover{background:#181824}
 .hit-time{color:var(--tx-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
@@ -593,7 +595,7 @@ body{
             <div class="stat-row"><span class="lbl">Critiques :</span><span class="val val-red" id="stCritVal">0</span></div>
             <div class="stat-row"><span class="lbl">Élevés :</span><span class="val val-orange" id="stHighVal">0</span></div>
             <div class="stat-row"><span class="lbl">Moyens / Bas :</span><span class="val val-yellow" id="stMedVal">0</span></div>
-            <div class="stat-row"><span class="lbl">404 (Miss) :</span><span class="val" id="stBadVal" style="color:var(--tx-dim)">0</span></div>
+            <div class="stat-row"><span class="lbl">BAD :</span><span class="val" id="stBadVal" style="color:#ff6b6b">0</span></div>
             <div class="stat-row"><span class="lbl">Reste à Tester :</span><span class="val val-cyan" id="stToCheckVal">0</span></div>
           </div>
 
@@ -604,6 +606,7 @@ body{
             </h4>
             <div class="stat-row"><span class="lbl">URLs Cibles :</span><span class="val" id="stTotalUrls">0</span></div>
             <div class="stat-row"><span class="lbl">URLs Actives :</span><span class="val val-green" id="stAliveUrls">0</span></div>
+            <div class="stat-row"><span class="lbl">Bans Détectés :</span><span class="val val-red" id="stBansVal">0</span></div>
             <div class="stat-row"><span class="lbl">Erreurs Réseau :</span><span class="val val-red" id="stErrorsVal">0</span></div>
             <div class="stat-row"><span class="lbl">Vitesse CPM :</span><span class="val val-green" id="stCPM">0</span></div>
             <div class="stat-row"><span class="lbl">Temps Écoulé :</span><span class="val" id="stElapsed">0.0s</span></div>
@@ -1448,12 +1451,14 @@ function updateBranchState(botId, slotId, ep, statusStr, totalSlots) {
     br.ep.title = ep || '';
     br.st.textContent = statusStr;
 
-    if (statusStr.includes('PROCESSING') || statusStr.includes('TRY')) {
+    if (statusStr.includes('BAN')) {
+      br.st.className = 'branch-col-st st-BAN';
+    } else if (statusStr.includes('PROCESSING') || statusStr.includes('TRY')) {
       br.st.className = 'branch-col-st st-PROCESSING';
     } else if (statusStr.includes('HIT') || statusStr.includes('SUCCESS')) {
       br.st.className = 'branch-col-st st-SUCCESS';
-    } else if (statusStr.includes('MISS') || statusStr.includes('404')) {
-      br.st.className = 'branch-col-st st-FAIL';
+    } else if (statusStr.includes('BAD') || statusStr.includes('MISS') || statusStr.includes('404')) {
+      br.st.className = 'branch-col-st st-BAD';
     } else if (statusStr.includes('ERROR')) {
       br.st.className = 'branch-col-st st-ERROR';
     } else {
@@ -1485,12 +1490,14 @@ function updateBotState(id, url, ep, statusStr) {
 
   b.colSt.textContent = statusStr;
 
-  if (statusStr.includes('PROCESSING') || statusStr.includes('TRY') || statusStr.includes('flux')) {
+  if (statusStr.includes('BAN')) {
+    b.colSt.className = 'bot-col-st st-BAN';
+  } else if (statusStr.includes('PROCESSING') || statusStr.includes('TRY') || statusStr.includes('flux')) {
     b.colSt.className = 'bot-col-st st-PROCESSING';
   } else if (statusStr.includes('SUCCESS') || statusStr.includes('HIT')) {
     b.colSt.className = 'bot-col-st st-SUCCESS';
-  } else if (statusStr.includes('FAIL') || statusStr.includes('404')) {
-    b.colSt.className = 'bot-col-st st-FAIL';
+  } else if (statusStr.includes('BAD') || statusStr.includes('FAIL') || statusStr.includes('404')) {
+    b.colSt.className = 'bot-col-st st-BAD';
   } else if (statusStr.includes('ERROR') || statusStr.includes('RETRY')) {
     b.colSt.className = 'bot-col-st st-ERROR';
   } else {
@@ -1541,12 +1548,14 @@ function renderFilteredHits() {
     const row = document.createElement('div');
     row.className = 'hit-row';
     row.onclick = () => openHitInspector(hit);
+    const cleanEp = (hit.ep || '').replace(/[\r\n]+/g, ' ');
+    const cleanCap = (hit.capture || '').replace(/[\r\n]+/g, ' ');
     row.innerHTML = `
       <div class="hit-time">${hit.time}</div>
       <div class="hit-data" title="${esc(hit.url)}">${esc(hit.url)}</div>
-      <div class="hit-ep" title="${esc(hit.ep)}">${esc(hit.ep)}</div>
+      <div class="hit-ep" title="${esc(cleanEp)}">${esc(cleanEp)}</div>
       <div class="hit-type type-${hit.type}">${hit.type}</div>
-      <div class="hit-cap" title="${esc(hit.capture)}">${esc(hit.capture)}</div>
+      <div class="hit-cap" title="${esc(cleanCap)}">${esc(cleanCap)}</div>
     `;
     list.appendChild(row);
   });
@@ -1578,12 +1587,14 @@ function addHitToUI(hit) {
     const row = document.createElement('div');
     row.className = 'hit-row';
     row.onclick = () => openHitInspector(hit);
+    const cleanEp = (hit.ep || '').replace(/[\r\n]+/g, ' ');
+    const cleanCap = (hit.capture || '').replace(/[\r\n]+/g, ' ');
     row.innerHTML = `
       <div class="hit-time">${hit.time}</div>
       <div class="hit-data" title="${esc(hit.url)}">${esc(hit.url)}</div>
-      <div class="hit-ep" title="${esc(hit.ep)}">${esc(hit.ep)}</div>
+      <div class="hit-ep" title="${esc(cleanEp)}">${esc(cleanEp)}</div>
       <div class="hit-type type-${hit.type}">${hit.type}</div>
-      <div class="hit-cap" title="${esc(hit.capture)}">${esc(hit.capture)}</div>
+      <div class="hit-cap" title="${esc(cleanCap)}">${esc(cleanCap)}</div>
     `;
     list.insertBefore(row, list.firstChild);
   }
@@ -1719,6 +1730,8 @@ async function startScan() {
   document.getElementById('cntCritBadge').textContent = '0';
   document.getElementById('cntHighBadge').textContent = '0';
   document.getElementById('cntOtherBadge').textContent = '0';
+  document.getElementById('stBadVal').textContent = '0';
+  if (document.getElementById('stBansVal')) document.getElementById('stBansVal').textContent = '0';
   filterHitsView('ALL');
 
   addLog('sys', `Lancement du scan : ${storedUrls.length} URLs, ${topEpVal} endpoints par URL. ${urlBotsVal} Bots URL × ${epBotsVal} Bots Endpoints (${urlBotsVal * epBotsVal} flux max). Profil: ${browserVal.toUpperCase()}`);
@@ -1789,6 +1802,8 @@ function handleServerEvent(evt) {
     case 'init':
       document.getElementById('stTotal').textContent = d.total_tasks.toLocaleString('fr-FR');
       document.getElementById('stTotalUrls').textContent = d.total_urls;
+      document.getElementById('stBadVal').textContent = '0';
+      if (document.getElementById('stBansVal')) document.getElementById('stBansVal').textContent = '0';
       document.getElementById('lblCfgName').textContent = 'Endpoints.json (' + d.total_ep + ')';
       const calcBadge = document.getElementById('lblTotalCalculated');
       if (calcBadge) {
@@ -1822,6 +1837,7 @@ function handleServerEvent(evt) {
       if (document.getElementById('stHighVal')) document.getElementById('stHighVal').textContent = d.high || 0;
       if (document.getElementById('stMedVal')) document.getElementById('stMedVal').textContent = (d.medium || 0) + (d.low || 0);
       document.getElementById('stBadVal').textContent = d.bad;
+      if (document.getElementById('stBansVal')) document.getElementById('stBansVal').textContent = d.bans || 0;
       document.getElementById('stToCheckVal').textContent = d.to_check;
 
       document.getElementById('stTotalUrls').textContent = d.total_urls;

@@ -144,6 +144,47 @@ def _extract_origin_and_prefix(raw: str) -> Tuple[str, str]:
 
 # --------------------------------------------------
 
+BLACKLIST_PATH = Path(__file__).resolve().parent / "data" / "domain_blacklist.json"
+
+# --------------------------------------------------
+
+def load_domain_blacklist() -> Set[str]:
+    if BLACKLIST_PATH.exists():
+        try:
+            with open(BLACKLIST_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                return {d.strip().lower() for d in data.get("domains", []) if d.strip()}
+        except Exception:
+            pass
+    return {
+        "instagram.com", "facebook.com", "meta.com", "github.com",
+        "gist.github.com", "gitlab.com", "google.com", "youtube.com",
+        "twitter.com", "x.com", "linkedin.com", "microsoft.com", "apple.com"
+    }
+
+# --------------------------------------------------
+
+def is_blacklisted_domain(url: str, blacklist: Set[str]) -> Tuple[bool, str]:
+    try:
+        netloc = urlparse(url).netloc.lower().split(":")[0]
+        for b in blacklist:
+            b_clean = b.lower().strip()
+            if not b_clean:
+                continue
+            if netloc == b_clean or netloc.endswith("." + b_clean):
+                return True, b_clean
+    except Exception:
+        pass
+    return False, ""
+
+# --------------------------------------------------
+
+@app.get("/api/blacklist")
+def get_blacklist():
+    return {"domains": sorted(list(load_domain_blacklist()))}
+
+# --------------------------------------------------
+
 LISTING_PATTERNS = [
     "index of /",
     "index of/",
@@ -158,7 +199,7 @@ LISTING_PATTERNS = [
     "directory of /",
 ]
 
-MAX_CRAWL_DEPTH = 4
+MAX_CRAWL_DEPTH = 3
 
 # --------------------------------------------------
 
@@ -251,10 +292,16 @@ async def _crawl_tree(
 async def batch_scan(payload: BatchRequest):
     jid = str(uuid.uuid4())[:8]
 
+    domain_blacklist = load_domain_blacklist()
     origin_map: Dict[str, Set[str]] = {}
+    ignored_blacklisted: List[Tuple[str, str]] = []
     for raw in payload.urls:
         origin, prefix = _extract_origin_and_prefix(raw)
         if not origin:
+            continue
+        is_bl, bl_match = is_blacklisted_domain(origin, domain_blacklist)
+        if is_bl:
+            ignored_blacklisted.append((origin, bl_match))
             continue
         if origin not in origin_map:
             origin_map[origin] = set()
@@ -263,6 +310,8 @@ async def batch_scan(payload: BatchRequest):
     targets = [(origin, sorted(prefixes)) for origin, prefixes in origin_map.items()]
 
     if not targets:
+        if ignored_blacklisted:
+            raise HTTPException(400, f"Toutes les URLs fournies ({len(ignored_blacklisted)}) figurent dans la liste des domaines exclus.")
         raise HTTPException(400, "Aucune URL valide fournie.")
 
     top_n = payload.top_endpoints or 100
@@ -321,11 +370,14 @@ async def batch_scan(payload: BatchRequest):
 
         start_time = time.time()
         alive_targets = set()
+        banned_targets = set()
+        consecutive_blocks: Dict[str, int] = {}
         g = {
             "total_tasks": total_tasks,
             "done": 0,
             "hits": 0,
             "bad": 0,
+            "bans": 0,
             "errors": 0,
             "critical": 0,
             "high": 0,
@@ -350,6 +402,13 @@ async def batch_scan(payload: BatchRequest):
             "msg": f"Runner initialisé avec succès : {total_urls} URLs, {total_ep} endpoints ({total_tasks} vérifications). {url_concurrency} Bots URL × {ep_concurrency} Bots Endpoints ({total_concurrency} flux max). Profil: {browser_choice.upper()} | Proxys: {proxy_mgr.count()} actifs."
         })
 
+        if ignored_blacklisted:
+            bl_summary = ", ".join(sorted({d for _, d in ignored_blacklisted}))
+            push("log", {
+                "cls": "warn",
+                "msg": f"[BLACKLIST] {len(ignored_blacklisted)} URL(s) ignorée(s) car figurant dans la liste des domaines exclus ({bl_summary})."
+            })
+
         last_stats_emit = 0.0
 
         def emit_stats_now():
@@ -370,6 +429,7 @@ async def batch_scan(payload: BatchRequest):
                 "pct": pct,
                 "hits": g["hits"],
                 "bad": g["bad"],
+                "bans": g["bans"],
                 "errors": g["errors"],
                 "cpm": cpm,
                 "elapsed": elapsed,
@@ -390,6 +450,7 @@ async def batch_scan(payload: BatchRequest):
             g["hits"] += 1
             if sev in g:
                 g[sev] += 1
+            capture_text = r.get("capture") or (", ".join(r.get("sensitive_data", [])) or (f"{status_code} Accessible ({r.get('content_type', '')})" if r.get("content_type") else f"{status_code} Accessible"))
             hit_obj = {
                 "id": 0,
                 "job_id": jid,
@@ -403,7 +464,7 @@ async def batch_scan(payload: BatchRequest):
                 "size": r.get("content_length", 0),
                 "ms": r.get("response_time_ms", 0),
                 "content_type": r.get("content_type", ""),
-                "capture": ", ".join(r.get("sensitive_data", [])) or (f"{status_code} Accessible ({r.get('content_type', '')})" if r.get("content_type") else f"{status_code} Accessible"),
+                "capture": capture_text,
                 "matches": r.get("sensitive_matches", []),
                 "snippet": r.get("snippet", ""),
             }
@@ -439,6 +500,19 @@ async def batch_scan(payload: BatchRequest):
                         "ep": "Détection listing...",
                         "st": "<<< PROCESSING URL >>>",
                     })
+
+                    soft_404_len: Optional[int] = None
+                    try:
+                        rnd_probe = origin.rstrip("/") + f"/chk404_{uuid.uuid4().hex[:8]}"
+                        resp_404 = await session.get(rnd_probe, headers=base_headers, timeout=timeout, allow_redirects=False)
+                        if resp_404.status_code == 200:
+                            soft_404_len = len(resp_404.content)
+                            push("log", {
+                                "cls": "warn",
+                                "msg": f"[CALIBRATION] {origin} répond en Soft-404 (200 OK sur route aléatoire, gabarit de {soft_404_len}b mémorisé)."
+                            })
+                    except Exception:
+                        pass
 
                     listing_found = False
                     crawl_base = None
@@ -573,6 +647,7 @@ async def batch_scan(payload: BatchRequest):
                                     use_bypass=use_bypass,
                                     use_mutations=use_mutations,
                                     headers=base_headers,
+                                    baseline_len=soft_404_len,
                                 )
                             except Exception:
                                 r = {
@@ -601,6 +676,7 @@ async def batch_scan(payload: BatchRequest):
                                 st_branch = f"STATUS: [{status_code}]"
 
                             if r.get("accessible"):
+                                consecutive_blocks[base_u] = 0
                                 full_url = base_u.rstrip("/") + ep_path
                                 await process_hit(wid, base_u, ep_path, full_url, r, sev, status_code)
                                 st_branch = f"HIT: [{status_code}] {sev.upper()}"
@@ -612,16 +688,48 @@ async def batch_scan(payload: BatchRequest):
                                     "total_slots": cur_slots,
                                 })
                             else:
-                                if status_code == 404:
-                                    g["bad"] += 1
-                                    st_branch = "404 MISS"
-                                push("bot", {
-                                    "id": wid,
-                                    "url": base_u,
-                                    "ep": ep_path,
-                                    "st": f"<<< REQ ({cur_slots} flux) >>>",
-                                    "total_slots": cur_slots,
-                                })
+                                is_ban = False
+                                ban_reason = ""
+                                if r.get("banned"):
+                                    is_ban = True
+                                    ban_reason = r.get("ban_reason", "WAF / Blocage")
+                                elif status_code in (403, 429):
+                                    consecutive_blocks[base_u] = consecutive_blocks.get(base_u, 0) + 1
+                                    if consecutive_blocks[base_u] >= 5:
+                                        is_ban = True
+                                        ban_reason = f"Blocage répété ({consecutive_blocks[base_u]}x [{status_code}])"
+                                elif status_code in (200, 201, 202, 204, 404):
+                                    consecutive_blocks[base_u] = 0
+
+                                if is_ban or base_u in banned_targets:
+                                    if base_u not in banned_targets:
+                                        banned_targets.add(base_u)
+                                        g["bans"] += 1
+                                        push("log", {
+                                            "cls": "crit",
+                                            "msg": f"[BAN DÉTECTÉ] Cible {base_u} bloquée ({ban_reason or 'IP Bannie'})"
+                                        })
+                                    st_branch = f"BAN [{status_code}]" if status_code else "BAN"
+                                    push("bot", {
+                                        "id": wid,
+                                        "url": base_u,
+                                        "ep": ep_path,
+                                        "st": f"<<< IP BANNED [{status_code or 403}] >>>",
+                                        "total_slots": cur_slots,
+                                    })
+                                else:
+                                    if status_code:
+                                        g["bad"] += 1
+                                        st_branch = f"BAD [{status_code}]"
+                                    else:
+                                        st_branch = "BAD"
+                                    push("bot", {
+                                        "id": wid,
+                                        "url": base_u,
+                                        "ep": ep_path,
+                                        "st": f"<<< REQ ({cur_slots} flux) >>>",
+                                        "total_slots": cur_slots,
+                                    })
 
                             push("ep_branch", {
                                 "bot_id": wid,
@@ -669,7 +777,7 @@ async def batch_scan(payload: BatchRequest):
                                 t0 = time.time()
                                 resp = await session.get(full_url, headers=base_headers, timeout=timeout, allow_redirects=False)
                                 ms = round((time.time() - t0) * 1000, 1)
-                                r = _analyze_resp(resp)
+                                r = _analyze_resp(resp, endpoint=rel_path, baseline_len=soft_404_len)
                                 r["response_time_ms"] = ms
                             except Exception:
                                 r = {
@@ -697,6 +805,7 @@ async def batch_scan(payload: BatchRequest):
                                 st_branch = f"STATUS: [{status_code}]"
 
                             if r.get("accessible"):
+                                consecutive_blocks[origin] = 0
                                 await process_hit(wid, origin, f"[CRAWL] {rel_path}", full_url, r, sev, status_code)
                                 st_branch = f"HIT: [{status_code}] {sev.upper()}"
                                 push("bot", {
@@ -707,9 +816,48 @@ async def batch_scan(payload: BatchRequest):
                                     "total_slots": cur_slots,
                                 })
                             else:
-                                if status_code == 404:
-                                    g["bad"] += 1
-                                    st_branch = "404 MISS"
+                                is_ban = False
+                                ban_reason = ""
+                                if r.get("banned"):
+                                    is_ban = True
+                                    ban_reason = r.get("ban_reason", "WAF / Blocage")
+                                elif status_code in (403, 429):
+                                    consecutive_blocks[origin] = consecutive_blocks.get(origin, 0) + 1
+                                    if consecutive_blocks[origin] >= 5:
+                                        is_ban = True
+                                        ban_reason = f"Blocage répété ({consecutive_blocks[origin]}x [{status_code}])"
+                                elif status_code in (200, 201, 202, 204, 404):
+                                    consecutive_blocks[origin] = 0
+
+                                if is_ban or origin in banned_targets:
+                                    if origin not in banned_targets:
+                                        banned_targets.add(origin)
+                                        g["bans"] += 1
+                                        push("log", {
+                                            "cls": "crit",
+                                            "msg": f"[BAN DÉTECTÉ] Cible {origin} bloquée ({ban_reason or 'IP Bannie'})"
+                                        })
+                                    st_branch = f"BAN [{status_code}]" if status_code else "BAN"
+                                    push("bot", {
+                                        "id": wid,
+                                        "url": origin,
+                                        "ep": f"[CRAWL] {rel_path}",
+                                        "st": f"<<< IP BANNED [{status_code or 403}] >>>",
+                                        "total_slots": cur_slots,
+                                    })
+                                else:
+                                    if status_code:
+                                        g["bad"] += 1
+                                        st_branch = f"BAD [{status_code}]"
+                                    else:
+                                        st_branch = "BAD"
+                                    push("bot", {
+                                        "id": wid,
+                                        "url": origin,
+                                        "ep": f"[CRAWL] {rel_path}",
+                                        "st": f"<<< REQ ({cur_slots} flux) >>>",
+                                        "total_slots": cur_slots,
+                                    })
 
                             push("ep_branch", {
                                 "bot_id": wid,
